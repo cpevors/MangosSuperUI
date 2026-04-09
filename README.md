@@ -14,7 +14,7 @@ MangosSuperUI aims to make running and building on a VMaNGOS server more accessi
 
 This project is not affiliated with or endorsed by Blizzard Entertainment.
 World of Warcraft® is a registered trademark of Blizzard Entertainment, Inc.
-MangosSuperUI does not distribute any Blizzard assets — icons, models, and minimap tiles are extracted from your own WoW 1.12.1 client using the included extractor tool.
+MangosSuperUI does not distribute any Blizzard assets — icons, models, and minimap tiles are extracted from your own WoW 1.12.1 client using the included extractor tool (see INSTALL.md).
 
 ---
 

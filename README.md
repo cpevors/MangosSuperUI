@@ -4,9 +4,15 @@ https://www.youtube.com/@Yafrovon --- For Video references on how to use the too
 
 A web-based server management and content development platform for [VMaNGOS](https://github.com/vmangos/core) 1.12.1 vanilla WoW private servers. Built with ASP.NET Core 8.0 MVC, jQuery, and MariaDB/MySQL. Runs on Linux, developed on Windows.
 
-MangosSuperUI aims to make running and building on a VMaNGOS server more accessible by bringing server operations, player administration, live log streaming, content editors with 3D model previews, a visual world map with click-to-place game objects, a Diablo-style loot variant generator, and a universal database explorer with auto-discovered relationship graphs and ER diagrams into a single web interface — all with a full audit trail on every action.
+## Why This Exists
 
-> **⚠️ Work in Progress:** MangosSuperUI is functional and actively used, but it is not finished. Existing features may have bugs, and entire sections (vendors, creatures, quests) are not yet built. I'm releasing it now so the community can use it, give feedback, and help improve it for everyone's benefit.
+I built MangosSuperUI for myself. I run a private VMaNGOS server at home — not public, just for me. I did not find a single tool that brought it all together in a way that didn't require you to already know everything.
+
+I looked for one and didn't find it — not for VMaNGOS, and not anything that was both unified (server ops, content editing, world building, data exploration in one place) and accessible (you shouldn't need to write SQL to change a drop rate). So I'm building it. 
+
+I'm open-sourcing it because if I needed this, other people running VMaNGOS, or those who want to immortalize vanilla WoW which many of us consider the apex of what this genre is, probably could use it too. It's not polished product software — it's a tool I'm using, developing, with the end goal of being able to run 100s of bots, that seem real enough, and with changes to the gameplay loop that feel vanilla, but add flavor and replayability. Feedback, bug reports, and contributions are all welcome.
+
+> **⚠️ Work in Progress:** MangosSuperUI is functional and actively used, but it is not finished. Existing features may have bugs, and entire sections (vendors, creatures, quests) are not yet built.
 
 ![Dashboard](Screenshots/dashboard.png)
 

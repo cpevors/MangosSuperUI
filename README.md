@@ -229,7 +229,7 @@ Broader content creation tools for shaping the game world beyond items and loot:
 | DBC Parsing | Custom binary parser (DbcService) |
 | Heightmaps | Custom binary parser (HeightMapService) |
 | Relationship Discovery | Python script → scored JSON (749 edges across 255 tables) |
-| Asset Extraction | MangosSuperUI Extractor (separate tool, WinForms + War3Net.IO.Mpq) |
+| Asset Extraction | [MangosSuperUI Extractor](https://github.com/Yafrovon/MangosSuperUI_Extractor) (separate tool, WinForms + War3Net.IO.Mpq) |
 
 ---
 
@@ -258,6 +258,8 @@ MangosSuperUI/
 ---
 
 ## Contributing
+
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the full guide. The short version:
 
 Open an issue before submitting a PR. Bug reports, feature requests, and documentation improvements are all welcome.
 

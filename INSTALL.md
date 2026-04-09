@@ -726,6 +726,8 @@ MangosSuperUI serves four types of static assets from its `wwwroot/` directory. 
 
 These assets are extracted from the WoW 1.12.1 client's MPQ archives using the **MangosSuperUI Extractor** — a Windows tool included with the project. See Part 3 below for extraction and deployment instructions.
 
+https://github.com/Yafrovon/MangosSuperUI_Extractor
+
 #### IMPORTANT: Icon filenames must be lowercase
 
 MangosSuperUI's DBC service resolves icon filenames in **lowercase** (e.g. `/icons/inv_sword_04.png`). Linux filesystems are case-sensitive, so if your icon files have mixed-case names (e.g. `INV_Sword_04.png`), they won't load.

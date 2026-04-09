@@ -1,5 +1,7 @@
 # MangosSuperUI
 
+https://www.youtube.com/@Yafrovon --- For Video references on how to use the tool
+
 A web-based server management and content development platform for [VMaNGOS](https://github.com/vmangos/core) 1.12.1 vanilla WoW private servers. Built with ASP.NET Core 8.0 MVC, jQuery, and MariaDB/MySQL. Runs on Linux, developed on Windows.
 
 MangosSuperUI aims to make running and building on a VMaNGOS server more accessible by bringing server operations, player administration, live log streaming, content editors with 3D model previews, a visual world map with click-to-place game objects, a Diablo-style loot variant generator, and a universal database explorer with auto-discovered relationship graphs and ER diagrams into a single web interface — all with a full audit trail on every action.

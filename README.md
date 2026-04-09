@@ -1,6 +1,6 @@
 # MangosSuperUI
 
-https://www.youtube.com/@Yafrovon --- For Video refernces on how to use the tool
+https://www.youtube.com/@Yafrovon --- For Video references on how to use the tool
 
 A web-based server management and content development platform for [VMaNGOS](https://github.com/vmangos/core) 1.12.1 vanilla WoW private servers. Built with ASP.NET Core 8.0 MVC, jQuery, and MariaDB/MySQL. Runs on Linux, developed on Windows.
 

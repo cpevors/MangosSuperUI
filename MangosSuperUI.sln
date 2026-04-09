@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MangosSuperUI", "MangosSuperUI\MangosSuperUI.csproj", "{A16E5845-A599-46E8-A0A7-C0F5DA8F61CA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A16E5845-A599-46E8-A0A7-C0F5DA8F61CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A16E5845-A599-46E8-A0A7-C0F5DA8F61CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A16E5845-A599-46E8-A0A7-C0F5DA8F61CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A16E5845-A599-46E8-A0A7-C0F5DA8F61CA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4C9BA1E1-FAD0-4022-89B0-DF0ED2EC6899}
+	EndGlobalSection
+EndGlobal

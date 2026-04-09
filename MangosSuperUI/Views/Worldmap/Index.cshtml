@@ -1,0 +1,494 @@
+@{
+    ViewData["Title"] = "World Map";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/lib/leaflet/leaflet.min.css" />
+    <style>
+        /* ── Map fills the content area ── */
+        .wm-container {
+            display: flex;
+            height: calc(100vh - 60px);
+            gap: 0;
+        }
+
+        .wm-map-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        #worldmap {
+            width: 100%;
+            height: 100%;
+            background: #0a0e14;
+        }
+
+        /* ── Coordinate overlay ── */
+        .wm-coords {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: rgba(15, 19, 25, 0.92);
+            color: #c8d0da;
+            padding: 6px 12px;
+            border-radius: var(--radius-md);
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .wm-coords span {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* ── Map selector ── */
+        .wm-map-selector {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            display: flex;
+            gap: 4px;
+        }
+
+        .wm-map-btn {
+            padding: 6px 14px;
+            background: rgba(15, 19, 25, 0.88);
+            color: #9aa5b4;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 12.5px;
+            font-weight: 600;
+            transition: all var(--transition-fast);
+        }
+
+        .wm-map-btn:hover {
+            background: rgba(30, 37, 48, 0.95);
+            color: #d1d9e6;
+        }
+
+        .wm-map-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* ── Side panel ── */
+        .wm-panel {
+            width: 320px;
+            min-width: 320px;
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .wm-panel-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-light);
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wm-panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+        }
+
+        /* ── Placement mode ── */
+        .wm-click-info {
+            background: var(--bg-card-alt);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 12.5px;
+        }
+
+        .wm-click-info .wm-click-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .wm-click-info .wm-click-value {
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .wm-z-pending {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* ── Compass orientation widget ── */
+        .wm-compass-section {
+            background: var(--bg-card-alt);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .wm-compass-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .wm-compass-label .wm-orient-value {
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            color: var(--text-primary);
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .wm-compass {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+        }
+
+        .wm-compass-ring {
+            position: absolute;
+            inset: 0;
+            border: 1px solid var(--border-medium);
+            border-radius: 50%;
+        }
+
+        .wm-compass-btn {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1px solid var(--border-medium);
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            padding: 0;
+            line-height: 1;
+        }
+
+        .wm-compass-btn:hover {
+            background: var(--accent-light);
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .wm-compass-btn.selected {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            box-shadow: 0 0 8px rgba(59, 130, 196, 0.4);
+        }
+
+        /* Position each button around the circle (120px, btn 30px → center at 60px, offset 45px from center) */
+        .wm-compass-btn[data-dir="N"]  { top: 0;    left: 45px; }
+        .wm-compass-btn[data-dir="NE"] { top: 8px;  left: 82px; }
+        .wm-compass-btn[data-dir="E"]  { top: 45px; left: 90px; }
+        .wm-compass-btn[data-dir="SE"] { top: 82px; left: 82px; }
+        .wm-compass-btn[data-dir="S"]  { top: 90px; left: 45px; }
+        .wm-compass-btn[data-dir="SW"] { top: 82px; left: 8px;  }
+        .wm-compass-btn[data-dir="W"]  { top: 45px; left: 0;    }
+        .wm-compass-btn[data-dir="NW"] { top: 8px;  left: 8px;  }
+
+        .wm-compass-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-medium);
+        }
+
+        /* ── Compass needle — points from center toward selected direction ── */
+        .wm-compass-needle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 36px;
+            background: var(--accent);
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(0deg);
+            border-radius: 1px;
+            transition: transform 0.25s ease;
+            opacity: 0;
+        }
+
+        .wm-compass-needle.visible {
+            opacity: 1;
+        }
+
+        .wm-compass-needle::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 6px solid var(--accent);
+        }
+
+        /* ── Object picker ── */
+        .wm-search {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .wm-search:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .wm-catalog-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .wm-catalog-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: background var(--transition-fast);
+            font-size: 13px;
+            gap: 8px;
+        }
+
+        .wm-catalog-item:hover {
+            background: var(--accent-light);
+        }
+
+        .wm-catalog-item.selected {
+            background: var(--accent-subtle);
+            border: 1px solid var(--accent);
+        }
+
+        .wm-catalog-item .wm-cat-entry {
+            font-family: 'Consolas', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .wm-catalog-item .wm-cat-name {
+            flex: 1;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .wm-catalog-item .wm-cat-type {
+            font-size: 11px;
+            color: var(--text-secondary);
+            background: var(--bg-card-alt);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        /* ── Place button ── */
+        .wm-place-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            transition: background var(--transition-fast);
+        }
+
+        .wm-place-btn:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+
+        .wm-place-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* ── Spawn markers ── */
+        .wm-spawn-label {
+            background: rgba(15, 19, 25, 0.85);
+            color: #c8d0da;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-family: 'Consolas', monospace;
+            white-space: nowrap;
+        }
+
+        .wm-spawn-label.custom {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ── Toggle row ── */
+        .wm-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            font-size: 12.5px;
+            color: var(--text-secondary);
+        }
+
+        .wm-toggle-row input[type="checkbox"] {
+            accent-color: var(--accent);
+        }
+
+        /* ── Spawn info popup ── */
+        .wm-popup-title {
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .wm-popup-detail {
+            font-family: 'Consolas', monospace;
+            font-size: 11.5px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .wm-popup-actions {
+            margin-top: 6px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .wm-popup-actions button {
+            padding: 3px 10px;
+            font-size: 11px;
+            border-radius: 3px;
+            border: 1px solid var(--border-medium);
+            background: var(--bg-card-alt);
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        .wm-popup-actions button.danger {
+            color: var(--status-error);
+            border-color: var(--status-error);
+        }
+    </style>
+}
+
+<div class="wm-container">
+    <!-- Map area -->
+    <div class="wm-map-wrap">
+        <div id="worldmap"></div>
+
+        <div class="wm-map-selector" id="mapSelector"></div>
+
+        <div class="wm-coords" id="coordsOverlay">
+            X: <span id="coordX">—</span>  Y: <span id="coordY">—</span>  Tile: <span id="coordTile">—</span>
+        </div>
+    </div>
+
+    <!-- Side panel -->
+    <div class="wm-panel">
+        <div class="wm-panel-header">
+            <i class="fa-solid fa-location-dot"></i>
+            Place Game Object
+        </div>
+        <div class="wm-panel-body">
+            <!-- Click info -->
+            <div class="wm-click-info" id="clickInfo">
+                <div class="wm-click-label">Click the map to set placement coordinates</div>
+                <div class="wm-click-value" id="clickCoords">No location selected</div>
+            </div>
+
+            <!-- Orientation compass -->
+            <div class="wm-compass-section" id="compassSection">
+                <div class="wm-compass-label">
+                    Orientation
+                    <span class="wm-orient-value" id="orientValue">N — 0.00 rad</span>
+                </div>
+                <div class="wm-compass">
+                    <div class="wm-compass-ring"></div>
+                    <div class="wm-compass-needle" id="compassNeedle"></div>
+                    <div class="wm-compass-center"></div>
+                    <button class="wm-compass-btn selected" data-dir="N" title="North">N</button>
+                    <button class="wm-compass-btn" data-dir="NE" title="Northeast">NE</button>
+                    <button class="wm-compass-btn" data-dir="E" title="East">E</button>
+                    <button class="wm-compass-btn" data-dir="SE" title="Southeast">SE</button>
+                    <button class="wm-compass-btn" data-dir="S" title="South">S</button>
+                    <button class="wm-compass-btn" data-dir="SW" title="Southwest">SW</button>
+                    <button class="wm-compass-btn" data-dir="W" title="West">W</button>
+                    <button class="wm-compass-btn" data-dir="NW" title="Northwest">NW</button>
+                </div>
+            </div>
+
+            <!-- Toggles -->
+            <div class="wm-toggle-row">
+                <input type="checkbox" id="chkShowCustom" checked />
+                <label for="chkShowCustom">Show custom object spawns</label>
+            </div>
+            <div class="wm-toggle-row" style="margin-bottom: 12px;">
+                <input type="checkbox" id="chkShowBase" />
+                <label for="chkShowBase">Show base-game spawns (slow)</label>
+            </div>
+
+            <!-- Object picker -->
+            <input type="text" class="wm-search" id="catalogSearch" placeholder="Search custom objects..." />
+            <ul class="wm-catalog-list" id="catalogList"></ul>
+
+            <!-- Place button -->
+            <button class="wm-place-btn" id="btnPlace" disabled>
+                <i class="fa-solid fa-map-pin"></i> Place Object
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/leaflet/leaflet.min.js"></script>
+    <script src="~/js/worldmap.js"></script>
+}

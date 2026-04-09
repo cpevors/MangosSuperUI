@@ -1,0 +1,1268 @@
+@{
+    ViewData["Title"] = "ARPG Lootifier";
+}
+
+<div class="app-shell">
+    <partial name="_Sidebar" />
+
+    <div class="main-content">
+        <div class="content-header d-flex align-items-start justify-content-between">
+            <div>
+                <h1><i class="fa-solid fa-dragon" style="color: var(--accent);"></i> ARPG Lootifier</h1>
+                <p>Generate Diablo-style item variants with stat rerolls and weighted loot table expansion</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn-sm btn-outline-subtle" id="btnViewStatus">
+                    <i class="fa-solid fa-chart-bar"></i> Status
+                </button>
+                <button class="btn-sm btn-outline-subtle" id="btnRollbackAll" style="border-color: var(--status-warning); color: var(--status-warning);">
+                    <i class="fa-solid fa-rotate-left"></i> Rollback All
+                </button>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div id="baselineWarning"></div>
+
+            <!-- Mode Tabs -->
+            <div class="lf-mode-tabs mb-3">
+                <button class="lf-mode-tab active" data-mode="single">
+                    <i class="fa-solid fa-crosshairs"></i> Single Source
+                </button>
+                <button class="lf-mode-tab" data-mode="batch">
+                    <i class="fa-solid fa-layer-group"></i> Batch Mode
+                </button>
+            </div>
+
+            <div class="row">
+                <!-- Left Panel -->
+                <div class="col-lg-5">
+
+                    <!-- ══ SINGLE SOURCE PANEL ══ -->
+                    <div id="singlePanel">
+                        <div class="card mb-3" style="position: sticky; top: 16px;">
+                            <div class="card-header">
+                                <i class="fa-solid fa-crosshairs" style="color: var(--accent);"></i> Select Source
+                            </div>
+                            <div class="card-body">
+                                <div class="filter-group">
+                                    <div class="filter-label">Search Creature / Boss</div>
+                                    <div class="lf-search-row">
+                                        <input type="text" class="form-input" id="creatureSearch" placeholder="Emperor Dagran Thaurissan..." />
+                                        <button class="btn-accent btn-search-go" id="btnSearchCreature">
+                                            <i class="fa-solid fa-magnifying-glass"></i>
+                                        </button>
+                                    </div>
+                                    <div id="searchResults" class="lf-search-results" style="display:none;"></div>
+                                </div>
+
+                                <div id="selectedCreature" style="display:none;">
+                                    <div class="lf-creature-card">
+                                        <div class="lf-creature-name" id="selCreatureName"></div>
+                                        <div class="lf-creature-meta">
+                                            <span id="selCreatureRank" class="lf-rank-badge"></span>
+                                            <span id="selCreatureLevel" class="text-muted"></span>
+                                            <span class="text-muted">Loot ID: <span id="selCreatureLootId"></span></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="lootTreeContainer" style="display:none;">
+                                    <div class="filter-label" style="margin-top: 14px;">
+                                        Loot Table
+                                        <span class="lf-select-hint">Select items to lootify</span>
+                                    </div>
+                                    <div id="lootTree" class="lf-loot-tree"></div>
+                                </div>
+
+                                <div id="rulesetPanel" style="display:none; margin-top: 16px;">
+                                    <div class="filter-label d-flex align-items-center justify-content-between">
+                                        <span>Ruleset Configuration</span>
+                                        <button class="btn-micro" id="btnResetRuleset">Reset Defaults</button>
+                                    </div>
+
+                                    <div class="lf-ruleset-grid">
+                                        <div class="lf-ruleset-field">
+                                            <label>Budget Ceiling</label>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <span class="text-muted">+</span>
+                                                <input type="number" class="form-input" id="rsBudgetCeiling" value="35" min="5" max="200" style="width:65px;" />
+                                                <span class="text-muted">% above base</span>
+                                            </div>
+                                        </div>
+                                        <div class="lf-ruleset-field">
+                                            <label>Variants per Item</label>
+                                            <input type="number" class="form-input" id="rsVariantsPerItem" value="10" min="1" max="50" style="width:65px;" />
+                                        </div>
+                                        <div class="lf-ruleset-field">
+                                            <label>Allow New Affixes</label>
+                                            <label class="lf-toggle">
+                                                <input type="checkbox" id="rsAllowNewAffixes" checked />
+                                                <span>From same stat family</span>
+                                            </label>
+                                        </div>
+                                        <div class="lf-ruleset-field">
+                                            <label>Max Extra Stat Slots</label>
+                                            <input type="number" class="form-input" id="rsMaxAffixChange" value="1" min="0" max="3" style="width:50px;" />
+                                        </div>
+                                    </div>
+
+                                    <div class="filter-label" style="margin-top: 12px;">Naming Tiers <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--accent);">prefix or suffix per tier</span></div>
+                                    <div id="namingTiers" class="lf-naming-tiers"></div>
+
+                                    <!-- Legendary System -->
+                                    <div class="lf-legendary-section mt-3">
+                                        <div class="filter-label d-flex align-items-center gap-2">
+                                            <label class="lf-toggle" style="margin:0;">
+                                                <input type="checkbox" id="rsLegendaryToggle" />
+                                                <span style="font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;color:var(--text-muted);">
+                                                    <i class="fa-solid fa-crown" style="color:#ff8000;"></i> Boss Legendary
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <div id="legendaryConfig" class="lf-legendary-config" style="display:none;">
+                                            <div class="lf-ruleset-grid" style="margin-top:8px;">
+                                                <div class="lf-ruleset-field">
+                                                    <label>Effective Drop %</label>
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <input type="number" class="form-input" id="rsLegendaryDropPct" value="0.2" min="0.01" max="5" step="0.05" style="width:65px;" />
+                                                        <span class="text-muted">%</span>
+                                                    </div>
+                                                </div>
+                                                <div class="lf-ruleset-field">
+                                                    <label>Legendary Item</label>
+                                                    <select class="form-input" id="rsLegendaryItem" style="font-size:11px;padding:5px 8px;">
+                                                        <option value="0">Random (any selected)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="lf-ruleset-grid" style="margin-top:6px;">
+                                                <div class="lf-ruleset-field">
+                                                    <label>Melee Suffix</label>
+                                                    <input type="text" class="form-input" id="rsLegSuffixMelee" value="of Destruction" style="font-size:12px;padding:4px 8px;" />
+                                                </div>
+                                                <div class="lf-ruleset-field">
+                                                    <label>Ranged Suffix</label>
+                                                    <input type="text" class="form-input" id="rsLegSuffixRanged" value="of the Hunt" style="font-size:12px;padding:4px 8px;" />
+                                                </div>
+                                            </div>
+                                            <div class="lf-ruleset-grid" style="margin-top:6px;">
+                                                <div class="lf-ruleset-field">
+                                                    <label>Caster Suffix</label>
+                                                    <input type="text" class="form-input" id="rsLegSuffixCaster" value="of Arcana" style="font-size:12px;padding:4px 8px;" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button class="btn-accent w-100 mt-3" id="btnGenerate" disabled>
+                                        <i class="fa-solid fa-dice-d20"></i> Generate Variants Preview
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══ BATCH MODE PANEL ══ -->
+                    <div id="batchPanel" style="display:none;">
+                        <div class="card mb-3" style="position: sticky; top: 16px;">
+                            <div class="card-header">
+                                <i class="fa-solid fa-layer-group" style="color: var(--accent);"></i> Batch Filters
+                            </div>
+                            <div class="card-body filter-body">
+
+                                <!-- Quality -->
+                                <div class="filter-group">
+                                    <div class="filter-label">Item Quality</div>
+                                    <div class="chip-row">
+                                        <button class="filter-chip toggle-chip" data-quality="2">
+                                            <span class="quality-dot" style="background:#1eff00;"></span> Uncommon
+                                        </button>
+                                        <button class="filter-chip toggle-chip active" data-quality="3">
+                                            <span class="quality-dot" style="background:#0070dd;"></span> Rare
+                                        </button>
+                                        <button class="filter-chip toggle-chip active" data-quality="4">
+                                            <span class="quality-dot" style="background:#a335ee;"></span> Epic
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Creature Rank -->
+                                <div class="filter-group">
+                                    <div class="filter-label">Creature Rank <span class="filter-optional">optional</span></div>
+                                    <div class="chip-row">
+                                        <button class="filter-chip toggle-chip" data-rank="0">Normal</button>
+                                        <button class="filter-chip toggle-chip" data-rank="1"><i class="fa-solid fa-star" style="font-size:9px;"></i> Elite</button>
+                                        <button class="filter-chip toggle-chip active" data-rank="3"><i class="fa-solid fa-skull"></i> Boss</button>
+                                        <button class="filter-chip toggle-chip" data-rank="4"><i class="fa-solid fa-diamond" style="font-size:9px;"></i> Rare</button>
+                                    </div>
+                                </div>
+
+                                <!-- Level Range -->
+                                <div class="filter-group">
+                                    <div class="filter-label">Required Level <span class="filter-optional">optional</span></div>
+                                    <div class="level-range-row">
+                                        <input type="number" class="form-input level-input" id="batchLevelMin" placeholder="1" min="1" max="60" />
+                                        <span class="range-dash">—</span>
+                                        <input type="number" class="form-input level-input" id="batchLevelMax" placeholder="60" min="1" max="60" />
+                                    </div>
+                                </div>
+
+                                <!-- Instance Picker -->
+                                <div class="filter-group">
+                                    <div class="filter-label">Dungeon / Raid <span class="filter-optional">optional</span></div>
+                                    <div class="instance-picker" id="batchInstancePicker"></div>
+                                </div>
+
+                                <!-- Ruleset (full controls — matches single mode) -->
+                                <div class="filter-label" style="margin-top: 12px;">
+                                    <span>Ruleset</span>
+                                </div>
+                                <div class="lf-ruleset-grid">
+                                    <div class="lf-ruleset-field">
+                                        <label>Budget Ceiling</label>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="text-muted">+</span>
+                                            <input type="number" class="form-input lf-rs-shared" data-target="rsBudgetCeiling" value="35" min="5" max="200" style="width:65px;" />
+                                            <span class="text-muted">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="lf-ruleset-field">
+                                        <label>Variants per Item</label>
+                                        <input type="number" class="form-input lf-rs-shared" data-target="rsVariantsPerItem" value="10" min="1" max="50" style="width:65px;" />
+                                    </div>
+                                    <div class="lf-ruleset-field">
+                                        <label>Allow New Affixes</label>
+                                        <label class="lf-toggle">
+                                            <input type="checkbox" class="lf-rs-shared-check" data-target="rsAllowNewAffixes" checked />
+                                            <span>From same stat family</span>
+                                        </label>
+                                    </div>
+                                    <div class="lf-ruleset-field">
+                                        <label>Max Extra Stat Slots</label>
+                                        <input type="number" class="form-input lf-rs-shared" data-target="rsMaxAffixChange" value="1" min="0" max="3" style="width:50px;" />
+                                    </div>
+                                </div>
+
+                                <div class="filter-label" style="margin-top: 12px;">Naming Tiers <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--accent);">prefix or suffix per tier</span></div>
+                                <div id="batchNamingTiers" class="lf-naming-tiers"></div>
+
+                                <!-- Legendary System (batch — no item picker, auto-random per creature) -->
+                                <div class="lf-legendary-section mt-3">
+                                    <div class="filter-label d-flex align-items-center gap-2">
+                                        <label class="lf-toggle" style="margin:0;">
+                                            <input type="checkbox" class="lf-batch-legendary-toggle" />
+                                            <span style="font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;color:var(--text-muted);">
+                                                <i class="fa-solid fa-crown" style="color:#ff8000;"></i> Boss Legendary
+                                            </span>
+                                        </label>
+                                    </div>
+                                    <div class="lf-legendary-config lf-batch-legendary-config" style="display:none;">
+                                        <div class="lf-ruleset-grid" style="margin-top:8px;">
+                                            <div class="lf-ruleset-field">
+                                                <label>Effective Drop %</label>
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <input type="number" class="form-input lf-batch-leg-drop" value="0.2" min="0.01" max="5" step="0.05" style="width:65px;" />
+                                                    <span class="text-muted">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="lf-ruleset-grid" style="margin-top:6px;">
+                                            <div class="lf-ruleset-field">
+                                                <label>Melee Suffix</label>
+                                                <input type="text" class="form-input lf-batch-leg-melee" value="of Destruction" style="font-size:12px;padding:4px 8px;" />
+                                            </div>
+                                            <div class="lf-ruleset-field">
+                                                <label>Ranged Suffix</label>
+                                                <input type="text" class="form-input lf-batch-leg-ranged" value="of the Hunt" style="font-size:12px;padding:4px 8px;" />
+                                            </div>
+                                        </div>
+                                        <div class="lf-ruleset-grid" style="margin-top:6px;">
+                                            <div class="lf-ruleset-field">
+                                                <label>Caster Suffix</label>
+                                                <input type="text" class="form-input lf-batch-leg-caster" value="of Arcana" style="font-size:12px;padding:4px 8px;" />
+                                            </div>
+                                        </div>
+                                        <div style="font-size:10px;color:var(--text-muted);margin-top:6px;font-style:italic;">
+                                            <i class="fa-solid fa-info-circle"></i> One random item per creature will become a boss-named legendary
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn-accent w-100 mt-3" id="btnBatchScan">
+                                    <i class="fa-solid fa-magnifying-glass"></i> Scan Loot Tables
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Preview + Commit -->
+                <div class="col-lg-7">
+                    <div class="card">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span><i class="fa-solid fa-eye" style="color: var(--accent);"></i> Preview</span>
+                            <span class="text-muted" style="font-size: 12px;" id="previewInfo">Select a creature and items to begin</span>
+                        </div>
+                        <div class="card-body p-0" id="previewContainer">
+                            <div class="lf-empty-state">
+                                <i class="fa-solid fa-dragon"></i>
+                                Search for a creature, select items from its loot table, then generate variants
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Batch Sample Preview (optional — alongside commit) -->
+                    <div class="card mt-3" id="batchSamplePanel" style="display:none;">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span><i class="fa-solid fa-flask" style="color: var(--accent);"></i> Sample Preview <span class="text-muted" style="font-size:11px;font-weight:400;">optional — see what your ruleset produces</span></span>
+                            <button class="btn-outline-subtle" id="btnBatchSample" style="padding:4px 12px;font-size:12px;">
+                                <i class="fa-solid fa-dice-d20"></i> Roll Samples
+                            </button>
+                        </div>
+                        <div class="card-body p-0" id="batchSampleContainer" style="max-height:400px;overflow-y:auto;">
+                        </div>
+                    </div>
+
+                    <div class="card mt-3" id="commitPanel" style="display:none;">
+                        <div class="card-body">
+                            <div class="lf-commit-summary">
+                                <div class="lf-commit-stat">
+                                    <div class="lf-commit-value" id="commitItemCount">0</div>
+                                    <div class="lf-commit-label">New Items</div>
+                                </div>
+                                <div class="lf-commit-stat">
+                                    <div class="lf-commit-value" id="commitLootRows">0</div>
+                                    <div class="lf-commit-label">Loot Rows</div>
+                                </div>
+                                <div class="lf-commit-stat">
+                                    <div class="lf-commit-value" id="commitBaseItems">0</div>
+                                    <div class="lf-commit-label">Base Items</div>
+                                </div>
+                            </div>
+                            <button class="lf-commit-btn" id="btnCommit">
+                                <i class="fa-solid fa-bolt"></i>
+                                <span>Commit to Database</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rollback Modal -->
+<div class="modal fade" id="rollbackModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border-light);">
+            <div class="modal-header" style="border-color: var(--status-warning); background: rgba(255,170,0,0.08);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600; color: var(--status-warning);">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Rollback Lootifier Changes
+                </h5>
+            </div>
+            <div class="modal-body" style="font-size: 13.5px;">
+                <p id="rollbackDesc"></p>
+                <p class="text-muted" style="font-size: 12px;">This action is logged but <strong>not reversible</strong>.</p>
+            </div>
+            <div class="modal-footer" style="border-color: var(--border-light); gap: 8px;">
+                <button class="btn-sm" id="btnConfirmRollback" style="background: var(--status-warning); border: none; color: #000; font-weight: 600; border-radius: var(--radius-sm); padding: 6px 16px; cursor: pointer;">
+                    <i class="fa-solid fa-rotate-left"></i> Rollback
+                </button>
+                <button class="btn-sm btn-outline-subtle" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border-light);">
+            <div class="modal-header" style="border-color: var(--border-light);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600;">
+                    <i class="fa-solid fa-chart-bar" style="color: var(--accent);"></i> Lootifier Status
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="font-size: 10px;"></button>
+            </div>
+            <div class="modal-body" id="statusBody" style="padding: 16px;">
+                <div class="text-center p-4"><i class="fa-solid fa-spinner fa-spin"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .quality-0 {
+            color: #9d9d9d;
+        }
+
+        .quality-1 {
+            color: var(--text-primary);
+        }
+
+        .quality-2 {
+            color: #1eff00;
+        }
+
+        .quality-3 {
+            color: #0070dd;
+        }
+
+        .quality-4 {
+            color: #a335ee;
+        }
+
+        .quality-5 {
+            color: #ff8000;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .col-lg-5 {
+            flex: 0 0 42%;
+            max-width: 42%;
+        }
+
+        .col-lg-7 {
+            flex: 0 0 calc(58% - 20px);
+            max-width: calc(58% - 20px);
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .gap-1 {
+            gap: 4px;
+        }
+
+        .gap-2 {
+            gap: 8px;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .align-items-start {
+            align-items: flex-start;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .w-100 {
+            width: 100%;
+        }
+
+        .mt-3 {
+            margin-top: 16px;
+        }
+
+        .mb-3 {
+            margin-bottom: 16px;
+        }
+
+        .p-0 {
+            padding: 0 !important;
+        }
+
+        /* ── Mode Tabs ── */
+        .lf-mode-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 3px;
+            width: fit-content;
+        }
+
+        .lf-mode-tab {
+            padding: 7px 16px;
+            border: none;
+            background: none;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            .lf-mode-tab:hover {
+                color: var(--text-primary);
+            }
+
+            .lf-mode-tab.active {
+                background: var(--accent);
+                color: white;
+            }
+
+            .lf-mode-tab i {
+                font-size: 12px;
+            }
+
+        /* ── Filter reuse from loot tuner ── */
+        .filter-group {
+            margin-bottom: 14px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .filter-optional {
+            font-weight: 400;
+            text-transform: none;
+            color: var(--text-muted);
+            opacity: 0.6;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+
+        .filter-body {
+            max-height: calc(100vh - 240px);
+            overflow-y: auto;
+        }
+
+        .btn-micro {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 0 4px;
+        }
+
+            .btn-micro:hover {
+                opacity: 0.7;
+            }
+
+        .chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 11px;
+            background: var(--bg-body);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+            .filter-chip:hover {
+                border-color: var(--accent);
+                color: var(--text-primary);
+            }
+
+            .filter-chip.active {
+                border-color: var(--accent);
+                color: white;
+                background: var(--accent);
+            }
+
+            .filter-chip i {
+                font-size: 10px;
+            }
+
+        .quality-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+            border: 1px solid rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .filter-chip.active .quality-dot {
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        .level-range-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .level-input {
+            width: 75px !important;
+            text-align: center;
+        }
+
+        .range-dash {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .instance-picker {
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 8px;
+        }
+
+        .instance-category {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 8px;
+            margin-bottom: 4px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+            .instance-category:first-child {
+                margin-top: 0;
+            }
+
+        .instance-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            margin: 2px;
+            background: var(--bg-body);
+            border: 1px solid var(--border-light);
+            border-radius: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+
+            .instance-chip:hover {
+                border-color: var(--accent);
+                color: var(--text-primary);
+            }
+
+            .instance-chip.active {
+                border-color: var(--accent);
+                color: white;
+                background: var(--accent);
+            }
+
+            .instance-chip .inst-level {
+                font-size: 9px;
+                opacity: 0.6;
+                font-weight: 400;
+            }
+
+        /* ── Search ── */
+        .lf-search-row {
+            display: flex;
+            gap: 6px;
+        }
+
+            .lf-search-row .form-input {
+                flex: 1;
+            }
+
+        .btn-search-go {
+            padding: 8px 12px;
+            flex-shrink: 0;
+            border-radius: var(--radius-md);
+        }
+
+        .lf-search-results {
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            margin-top: 6px;
+        }
+
+        .lf-search-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 10px;
+            cursor: pointer;
+            font-size: 12.5px;
+            border-bottom: 1px solid var(--border-light);
+            transition: background 0.1s;
+        }
+
+            .lf-search-item:last-child {
+                border-bottom: none;
+            }
+
+            .lf-search-item:hover {
+                background: var(--accent-light);
+            }
+
+            .lf-search-item .lf-sr-name {
+                font-weight: 500;
+                color: var(--text-primary);
+            }
+
+            .lf-search-item .lf-sr-meta {
+                font-size: 11px;
+                color: var(--text-muted);
+            }
+
+        /* ── Selected creature ── */
+        .lf-creature-card {
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+            margin-top: 10px;
+        }
+
+        .lf-creature-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .lf-creature-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 11.5px;
+            margin-top: 3px;
+        }
+
+        .lf-rank-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+            .lf-rank-badge.boss {
+                background: rgba(239,68,68,0.15);
+                color: var(--status-error);
+            }
+
+            .lf-rank-badge.elite {
+                background: rgba(245,158,11,0.15);
+                color: var(--status-warning);
+            }
+
+            .lf-rank-badge.normal {
+                background: var(--bg-card-alt);
+                color: var(--text-muted);
+            }
+
+        .lf-select-hint {
+            font-weight: 400;
+            text-transform: none;
+            color: var(--accent);
+            font-size: 10px;
+            margin-left: 6px;
+            letter-spacing: 0;
+        }
+
+        /* ── Loot Tree ── */
+        .lf-loot-tree {
+            max-height: 340px;
+            overflow-y: auto;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+        }
+
+        .lf-loot-section {
+            padding: 6px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg-card-alt);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .lf-loot-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            border-bottom: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+            .lf-loot-row:hover {
+                background: rgba(59,130,196,0.06);
+            }
+
+            .lf-loot-row.selected {
+                background: var(--accent-light);
+            }
+
+            .lf-loot-row.no-stats {
+                opacity: 0.5;
+                cursor: default;
+            }
+
+            .lf-loot-row img {
+                width: 20px;
+                height: 20px;
+                image-rendering: pixelated;
+                border-radius: 2px;
+                border: 1px solid var(--border-light);
+            }
+
+            .lf-loot-row .lf-item-name {
+                flex: 1;
+                font-weight: 500;
+            }
+
+            .lf-loot-row .lf-item-chance {
+                font-family: monospace;
+                font-size: 11px;
+                color: var(--text-muted);
+                min-width: 45px;
+                text-align: right;
+            }
+
+            .lf-loot-row .lf-item-budget {
+                font-size: 10px;
+                color: var(--text-muted);
+                min-width: 35px;
+                text-align: right;
+            }
+
+            .lf-loot-row .lf-item-family {
+                font-size: 9px;
+                padding: 1px 4px;
+                border-radius: 6px;
+                background: var(--bg-card-alt);
+                color: var(--text-muted);
+                text-transform: uppercase;
+                font-weight: 600;
+            }
+
+        .lf-loot-check {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        /* ── Ruleset ── */
+        .lf-ruleset-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .lf-ruleset-field label:first-child {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+        }
+
+        .lf-ruleset-field .form-input {
+            padding: 5px 8px;
+            font-size: 12.5px;
+        }
+
+        .lf-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+            .lf-toggle input {
+                accent-color: var(--accent);
+            }
+
+        /* ── Naming Tiers ── */
+        .lf-naming-tiers {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .lf-tier-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .lf-tier-range {
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            min-width: 60px;
+        }
+
+        .lf-tier-input {
+            padding: 3px 8px !important;
+            font-size: 12px !important;
+            flex: 1;
+        }
+
+        .lf-tier-position {
+            font-size: 11px !important;
+        }
+
+        /* ── Empty State ── */
+        .lf-empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+            .lf-empty-state i {
+                font-size: 28px;
+                margin-bottom: 10px;
+                display: block;
+                color: var(--border-light);
+            }
+
+        /* ── Preview ── */
+        .lf-preview-group {
+            border-bottom: 2px solid var(--border-light);
+        }
+
+            .lf-preview-group:last-child {
+                border-bottom: none;
+            }
+
+        .lf-preview-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--bg-card-alt);
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+            .lf-preview-header img {
+                width: 24px;
+                height: 24px;
+                image-rendering: pixelated;
+                border-radius: 2px;
+                border: 1px solid var(--border-light);
+            }
+
+        .lf-preview-analysis {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-left: auto;
+        }
+
+        .lf-variant-table {
+            width: 100%;
+            font-size: 12px;
+            border-collapse: collapse;
+        }
+
+            .lf-variant-table th {
+                padding: 6px 10px;
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
+                border-bottom: 1px solid var(--border-light);
+                background: var(--bg-card);
+                position: sticky;
+                top: 0;
+            }
+
+            .lf-variant-table td {
+                padding: 4px 10px;
+                border-bottom: 1px solid var(--border-light);
+                vertical-align: middle;
+            }
+
+            .lf-variant-table tr:hover td {
+                background: rgba(59,130,196,0.04);
+            }
+
+        .lf-tier-badge {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+
+            .lf-tier-badge.variation {
+                background: var(--bg-card-alt);
+                color: var(--text-muted);
+            }
+
+            .lf-tier-badge.power {
+                background: rgba(59,130,196,0.15);
+                color: var(--accent);
+            }
+
+            .lf-tier-badge.glory {
+                background: rgba(163,53,238,0.15);
+                color: #a335ee;
+            }
+
+            .lf-tier-badge.gods {
+                background: rgba(255,128,0,0.15);
+                color: #ff8000;
+            }
+
+        .lf-budget-bar {
+            width: 60px;
+            height: 6px;
+            background: var(--border-light);
+            border-radius: 3px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+
+        .lf-budget-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.2s;
+        }
+
+        .lf-stat-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 1px 5px;
+            margin: 1px;
+            background: var(--bg-card-alt);
+            border-radius: 8px;
+            font-size: 10.5px;
+            font-weight: 500;
+        }
+
+            .lf-stat-pill.new {
+                border: 1px dashed var(--accent);
+            }
+
+        .lf-spell-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            background: rgba(163,53,238,0.12);
+            color: #a335ee;
+            font-weight: 600;
+            white-space: nowrap;
+            margin-left: auto;
+        }
+
+        .lf-legendary-section {
+            border-top: 1px solid var(--border-light);
+            padding-top: 10px;
+        }
+
+        .lf-legendary-config {
+            padding-left: 4px;
+        }
+
+        /* ── Legendary Preview Card ── */
+        .lf-legendary-card {
+            margin: 12px 0 4px;
+            border: 1px solid #ff8000;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(255,128,0,0.04) 0%, rgba(255,128,0,0.01) 100%);
+            overflow: hidden;
+        }
+
+        .lf-legendary-card-header {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(255,128,0,0.06);
+            border-bottom: 1px solid rgba(255,128,0,0.2);
+        }
+
+        .lf-legendary-card-body {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px 6px;
+        }
+
+        .lf-legendary-card-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 4px 12px 10px;
+        }
+
+        /* ── Batch Preview ── */
+        .lf-batch-creature {
+            border-bottom: 1px solid var(--border-light);
+        }
+
+            .lf-batch-creature:last-child {
+                border-bottom: none;
+            }
+
+        .lf-batch-creature-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-card-alt);
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-light);
+            cursor: pointer;
+        }
+
+        .lf-batch-creature-name {
+            flex: 1;
+        }
+
+        .lf-batch-item-count {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .lf-batch-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 12px 3px 28px;
+            font-size: 12px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+            .lf-batch-item:last-child {
+                border-bottom: none;
+            }
+
+        /* ── Commit ── */
+        .lf-commit-summary {
+            display: flex;
+            gap: 16px;
+            justify-content: space-around;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .lf-commit-stat {
+            flex: 1;
+        }
+
+        .lf-commit-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .lf-commit-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .lf-commit-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: opacity 0.15s;
+        }
+
+            .lf-commit-btn:hover {
+                opacity: 0.9;
+            }
+
+        /* ── Toast ── */
+        .lf-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            animation: lfToastIn 0.3s ease-out;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+            .lf-toast.success {
+                background: var(--status-online);
+                color: white;
+            }
+
+            .lf-toast.error {
+                background: var(--status-error);
+                color: white;
+            }
+
+        @@keyframes lfToastIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #previewContainer {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/js/lootifier.js" asp-append-version="true"></script>
+}

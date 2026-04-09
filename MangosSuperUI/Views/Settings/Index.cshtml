@@ -1,0 +1,289 @@
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<div class="app-shell">
+    <partial name="_Sidebar" />
+
+    <div class="main-content">
+        <div class="content-header">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h1>Settings</h1>
+                    <p>Server connection and path configuration</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn-outline-subtle" id="btnResetConfig" title="Remove override file and revert to appsettings.json">
+                        <i class="fa-solid fa-rotate-left"></i> Reset to Defaults
+                    </button>
+                    <button class="btn-accent" id="btnSaveConfig">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <!-- Status Banner -->
+            <div class="card mb-4" id="configStatusCard">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <i class="fa-solid fa-circle-info" style="color: var(--accent); font-size: 18px;"></i>
+                    <div>
+                        <div style="font-weight: 600; font-size: 13.5px;" id="configStatusTitle">Loading configuration...</div>
+                        <div style="font-size: 12.5px; color: var(--text-secondary);" id="configStatusDetail"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Connections -->
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-database" style="color: var(--accent);"></i>
+                    Database Connections
+                </div>
+                <div class="card-body">
+                    <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0 0 16px;">
+                        Connection strings for the VMaNGOS databases. Use <code>127.0.0.1</code> when the app runs on the same machine as MariaDB.
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="cmd-label">Mangos (World DB)</label>
+                            <input type="text" class="form-input cfg-input" id="cfgMangos" data-path="connectionStrings.mangos" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="cmd-label">Characters</label>
+                            <input type="text" class="form-input cfg-input" id="cfgCharacters" data-path="connectionStrings.characters" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="cmd-label">Realmd (Auth DB)</label>
+                            <input type="text" class="form-input cfg-input" id="cfgRealmd" data-path="connectionStrings.realmd" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="cmd-label">Logs</label>
+                            <input type="text" class="form-input cfg-input" id="cfgLogs" data-path="connectionStrings.logs" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="cmd-label">Admin (Custom Tables)</label>
+                            <input type="text" class="form-input cfg-input" id="cfgAdmin" data-path="connectionStrings.admin" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Remote Access -->
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-plug" style="color: var(--accent);"></i>
+                    Remote Access (RA)
+                </div>
+                <div class="card-body">
+                    <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0 0 16px;">
+                        TCP connection to mangosd's Remote Access console. Use <code>127.0.0.1</code> when deployed on the same machine.
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="cmd-label">Host</label>
+                            <input type="text" class="form-input cfg-input" id="cfgRaHost" data-path="remoteAccess.host" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="cmd-label">Port</label>
+                            <input type="number" class="form-input cfg-input" id="cfgRaPort" data-path="remoteAccess.port" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="cmd-label">Username</label>
+                            <input type="text" class="form-input cfg-input" id="cfgRaUser" data-path="remoteAccess.username" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="cmd-label">Password</label>
+                            <input type="text" class="form-input cfg-input" id="cfgRaPass" data-path="remoteAccess.password" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="cmd-label">Timeout (ms)</label>
+                            <input type="number" class="form-input cfg-input" id="cfgRaTimeout" data-path="remoteAccess.commandTimeoutMs" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VMaNGOS Paths & Processes -->
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-folder-open" style="color: var(--accent);"></i>
+                    VMaNGOS Paths & Processes
+                </div>
+                <div class="card-body">
+                    <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0 0 16px;">
+                        Paths to the VMaNGOS installation on the server. Only used when the app is deployed on the same machine.
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="cmd-label">Bin Directory</label>
+                            <input type="text" class="form-input cfg-input" id="cfgBinDir" data-path="vmangos.binDirectory" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="cmd-label">Log Directory</label>
+                            <input type="text" class="form-input cfg-input" id="cfgLogDir" data-path="vmangos.logDirectory" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="cmd-label">Config Directory</label>
+                            <input type="text" class="form-input cfg-input" id="cfgConfDir" data-path="vmangos.configDirectory" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="cmd-label">
+                                World Server Process Name
+                                <i class="fa-solid fa-circle-question cfg-hint" title="The process name as seen by the OS. Run: cat /proc/$(pgrep -f mangosd)/comm to find it. Common values: mangosd, mangosd-main"></i>
+                            </label>
+                            <input type="text" class="form-input cfg-input" id="cfgMangosdProcess" placeholder="mangosd" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="cmd-label">
+                                Auth Server Process Name
+                                <i class="fa-solid fa-circle-question cfg-hint" title="The process name as seen by the OS. Run: cat /proc/$(pgrep -f realmd)/comm to find it. Common values: realmd, realmd-main"></i>
+                            </label>
+                            <input type="text" class="form-input cfg-input" id="cfgRealmdProcess" placeholder="realmd" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="cmd-label">
+                                mangosd.conf Path
+                                <i class="fa-solid fa-circle-question cfg-hint" title="Full path to mangosd.conf. Used by the Config Editor page. Find it with: find / -name mangosd.conf 2>/dev/null"></i>
+                            </label>
+                            <input type="text" class="form-input cfg-input" id="cfgMangosdConfPath" placeholder="/home/wowvmangos/vmangos/run/etc/mangosd.conf" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="cmd-label">
+                                Server Logs Directory
+                                <i class="fa-solid fa-circle-question cfg-hint" title="Directory containing Server.log, Chat.log, etc. Used by the Live Logs page."></i>
+                            </label>
+                            <input type="text" class="form-input cfg-input" id="cfgLogsDir" placeholder="/home/wowvmangos/vmangos/run/bin" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DBC Data Files -->
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-icons" style="color: var(--accent);"></i>
+                    DBC Data Files
+                </div>
+                <div class="card-body">
+                    <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0 0 16px;">
+                        Path to the extracted 1.12.1 DBC files on the server. Used by the Spell/Item/Game Object browsers for icon resolution and auxiliary data lookups.
+                        These files are read from the VMaNGOS runtime data directory — they are <strong>not</strong> copied into the MangosSuperUI deployment.
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="cmd-label">
+                                DBC Directory Path
+                                <i class="fa-solid fa-circle-question cfg-hint" title="Directory containing Spell.dbc, ItemDisplayInfo.dbc, SpellIcon.dbc, etc. Usually located at /home/wowvmangos/vmangos/run/data/5875/dbc"></i>
+                            </label>
+                            <input type="text" class="form-input cfg-input" id="cfgDbcPath" placeholder="/home/wowvmangos/vmangos/run/data/5875/dbc" />
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn-outline-subtle" id="btnReloadDbc" title="Re-read DBC files from the configured path">
+                                <i class="fa-solid fa-arrows-rotate"></i> Reload DBC
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- DBC Status -->
+                    <div class="dbc-status-panel mt-3" id="dbcStatusPanel">
+                        <div class="d-flex align-items-center gap-2" id="dbcStatusRow">
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 13px; color: var(--text-muted);"></i>
+                            <span style="font-size: 12.5px; color: var(--text-secondary);">Checking DBC status...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maps Data (Heightmaps) -->
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-mountain-sun" style="color: var(--accent);"></i>
+                    Maps Data (Heightmaps)
+                </div>
+                <div class="card-body">
+                    <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0 0 16px;">
+                        Path to the pre-extracted <code>.map</code> files generated by the VMaNGOS map extractor.
+                        Used by the World Map page to resolve terrain Z height when placing game objects.
+                        Without this, objects placed via the web map will spawn at Z=0 (sea level).
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="cmd-label">
+                                Maps Directory Path
+                                <i class="fa-solid fa-circle-question cfg-hint" title="Directory containing .map files (e.g. 0002730.map). Usually located at /home/wowvmangos/vmangos/run/data/maps — these are the files produced by the ad extractor, not raw ADT files."></i>
+                            </label>
+                            <input type="text" class="form-input cfg-input" id="cfgMapsDataPath" placeholder="/home/wowvmangos/vmangos/run/data/maps" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kestrel -->
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-network-wired" style="color: var(--accent);"></i>
+                    Web Server (Kestrel)
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="cmd-label">Listen URL</label>
+                            <input type="text" class="form-input cfg-input" id="cfgKestrelUrl" data-path="kestrel.url" placeholder="http://0.0.0.0:5000" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save feedback -->
+            <div id="saveMessage" style="display: none;" class="card mb-4">
+                <div class="card-body d-flex align-items-center gap-3" id="saveMessageBody">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .cfg-hint {
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-left: 4px;
+            cursor: help;
+        }
+
+            .cfg-hint:hover {
+                color: var(--accent);
+            }
+
+        .dbc-status-panel {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+        }
+
+        .dbc-count-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 2px 8px;
+            font-size: 11.5px;
+            color: var(--text-secondary);
+        }
+
+        .dbc-count-chip .count-val {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/js/settings.js" asp-append-version="true"></script>
+}

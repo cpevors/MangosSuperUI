@@ -1,0 +1,409 @@
+@{
+    ViewData["Title"] = "Accounts";
+}
+
+<div class="app-shell">
+    <partial name="_Sidebar" />
+
+    <div class="main-content">
+        <div class="content-header">
+            <h1>Accounts</h1>
+            <p>Browse, search, and manage player accounts</p>
+        </div>
+
+        <div class="content-body">
+            <!-- Summary Badges -->
+            <div class="acct-summary" id="summaryBar">
+                <div class="acct-badge" data-filter="">
+                    <span class="acct-badge-count" id="badgeTotal">—</span>
+                    <span class="acct-badge-label">Total</span>
+                </div>
+                <div class="acct-badge" data-filter="online">
+                    <span class="acct-badge-count acct-count-online" id="badgeOnline">—</span>
+                    <span class="acct-badge-label">Online</span>
+                </div>
+                <div class="acct-badge" data-filter="gm">
+                    <span class="acct-badge-count acct-count-gm" id="badgeGm">—</span>
+                    <span class="acct-badge-label">GM+</span>
+                </div>
+                <div class="acct-badge" data-filter="banned">
+                    <span class="acct-badge-count acct-count-banned" id="badgeBanned">—</span>
+                    <span class="acct-badge-label">Banned</span>
+                </div>
+                <div class="acct-badge" data-filter="muted">
+                    <span class="acct-badge-count" id="badgeMuted">—</span>
+                    <span class="acct-badge-label">Muted</span>
+                </div>
+                <div class="acct-badge" data-filter="locked">
+                    <span class="acct-badge-count" id="badgeLocked">—</span>
+                    <span class="acct-badge-label">Locked</span>
+                </div>
+            </div>
+
+            <!-- Search + Filters -->
+            <div class="card mb-3">
+                <div class="card-body" style="padding: 12px 18px;">
+                    <div class="d-flex gap-3 align-items-center">
+                        <div class="acct-search-wrap" style="flex: 1;">
+                            <i class="fa-solid fa-magnifying-glass acct-search-icon"></i>
+                            <input type="text" class="form-input acct-search-input" id="acctSearch"
+                                   placeholder="Search by username or IP..." autocomplete="off" spellcheck="false" />
+                        </div>
+                        <select class="form-input" id="acctGmFilter" style="width: 150px;">
+                            <option value="">All Levels</option>
+                            <option value="0">Player (0)</option>
+                            <option value="1">Moderator (1)</option>
+                            <option value="2">Ticket Master (2)</option>
+                            <option value="3">Game Master (3)</option>
+                            <option value="4">Basic Admin (4)</option>
+                            <option value="5">Developer (5)</option>
+                            <option value="6">Administrator (6)</option>
+                            <option value="7">Console (7)</option>
+                        </select>
+                        <button class="btn-outline-subtle" id="btnClearFilters" title="Clear all filters">
+                            <i class="fa-solid fa-filter-circle-xmark"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two-panel layout: list + detail -->
+            <div class="acct-panels">
+                <!-- Account List -->
+                <div class="acct-list-panel">
+                    <div class="card" style="height: 100%;">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-id-badge" style="color: var(--accent);"></i>
+                                <span>Accounts</span>
+                                <span class="text-muted" id="listCount" style="font-weight: 400;"></span>
+                            </div>
+                            <div class="acct-pagination" id="pagination"></div>
+                        </div>
+                        <div class="card-body" style="padding: 0; overflow-y: auto; max-height: calc(100vh - 340px);">
+                            <table class="table-clean">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Level</th>
+                                        <th>Characters</th>
+                                        <th>Status</th>
+                                        <th>Last Login</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="acctTableBody">
+                                    <tr><td colspan="6" class="text-center text-muted" style="padding: 40px;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Detail -->
+                <div class="acct-detail-panel">
+                    <!-- Empty state -->
+                    <div id="detailEmpty" class="card" style="height: 100%;">
+                        <div class="card-body d-flex align-items-center justify-content-center" style="height: 100%;">
+                            <div class="text-center" style="color: var(--text-muted);">
+                                <i class="fa-solid fa-id-card" style="font-size: 36px; margin-bottom: 12px; display: block;"></i>
+                                <div style="font-size: 14px; font-weight: 500;">Select an account</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detail content (hidden until selected) -->
+                    <div id="detailContent" style="display: none;">
+                        <!-- Account header -->
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex align-items-start justify-content-between">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="player-name" id="dUsername">—</span>
+                                            <span class="player-status" id="dStatus">Offline</span>
+                                            <span class="acct-gm-badge" id="dGmBadge" style="display: none;"></span>
+                                        </div>
+                                        <div class="player-subtitle" style="margin-top: 4px;">
+                                            Account #<span id="dId">—</span>
+                                            <span class="text-muted" style="margin: 0 8px;">·</span>
+                                            Joined <span id="dJoinDate">—</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn-outline-subtle" id="btnRefreshDetail" title="Refresh">
+                                        <i class="fa-solid fa-arrows-rotate"></i>
+                                    </button>
+                                </div>
+
+                                <div class="player-stats-row">
+                                    <div class="player-stat">
+                                        <div class="player-stat-label">Last IP</div>
+                                        <div class="player-stat-value" id="dLastIp">—</div>
+                                    </div>
+                                    <div class="player-stat">
+                                        <div class="player-stat-label">Last Login</div>
+                                        <div class="player-stat-value" id="dLastLogin">—</div>
+                                    </div>
+                                    <div class="player-stat">
+                                        <div class="player-stat-label">Email</div>
+                                        <div class="player-stat-value" id="dEmail">—</div>
+                                    </div>
+                                    <div class="player-stat">
+                                        <div class="player-stat-label">Client</div>
+                                        <div class="player-stat-value" id="dClient">—</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Characters -->
+                        <div class="card mb-3">
+                            <div class="card-header d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-users" style="color: var(--accent);"></i>
+                                Characters
+                                <span class="text-muted" id="dCharCount" style="font-weight: 400;"></span>
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <div id="dCharList" style="max-height: 180px; overflow-y: auto;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="card mb-3">
+                            <div class="card-header d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-bolt" style="color: var(--accent);"></i>
+                                Actions
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <button class="btn-accent acct-action" data-action="ban" style="background: var(--status-error);">
+                                        <i class="fa-solid fa-gavel"></i> Ban
+                                    </button>
+                                    <button class="btn-outline-subtle acct-action" data-action="unban">
+                                        <i class="fa-solid fa-unlock"></i> Unban
+                                    </button>
+                                    <button class="btn-outline-subtle acct-action" data-action="mute">
+                                        <i class="fa-solid fa-volume-xmark"></i> Mute 30m
+                                    </button>
+                                    <button class="btn-outline-subtle acct-action" data-action="unmute">
+                                        <i class="fa-solid fa-volume-high"></i> Unmute
+                                    </button>
+                                    <button class="btn-outline-subtle acct-action" data-action="lock">
+                                        <i class="fa-solid fa-lock"></i> Lock
+                                    </button>
+                                    <button class="btn-outline-subtle acct-action" data-action="unlock">
+                                        <i class="fa-solid fa-lock-open"></i> Unlock
+                                    </button>
+                                </div>
+
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <label class="cmd-label">GM Level</label>
+                                        <select class="form-input" id="dGmLevelSelect">
+                                            <option value="0">0 — Player</option>
+                                            <option value="1">1 — Moderator</option>
+                                            <option value="2">2 — Ticket Master</option>
+                                            <option value="3">3 — Game Master</option>
+                                            <option value="4">4 — Basic Admin</option>
+                                            <option value="5">5 — Developer</option>
+                                            <option value="6">6 — Administrator</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6 d-flex align-items-end">
+                                        <button class="btn-accent acct-action" data-action="setGmLevel">Set GM Level</button>
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="cmd-label">New Password</label>
+                                        <input type="text" class="form-input" id="dNewPass" placeholder="newpassword" />
+                                    </div>
+                                    <div class="col-6 d-flex align-items-end">
+                                        <button class="btn-accent acct-action" data-action="setPassword">Set Password</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ban History -->
+                        <div class="card mb-3" id="banHistoryCard" style="display: none;">
+                            <div class="card-header d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-gavel" style="color: var(--status-error);"></i>
+                                Ban History
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <div id="dBanHistory"></div>
+                            </div>
+                        </div>
+
+                        <!-- Response Output -->
+                        <div class="card">
+                            <div class="card-header d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-terminal" style="color: var(--accent);"></i>
+                                    Response
+                                </div>
+                                <button class="btn-outline-subtle" id="btnClearOutput" style="padding: 2px 8px; font-size: 11px;">Clear</button>
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <div class="console-output" id="acctOutput" style="height: 120px; border-radius: 0 0 var(--radius-lg) var(--radius-lg);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Summary badges */
+        .acct-summary {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .acct-badge {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 10px 16px;
+            text-align: center;
+            min-width: 80px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .acct-badge:hover { border-color: var(--accent); }
+        .acct-badge.active {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+        .acct-badge-count {
+            display: block;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+        .acct-badge-label {
+            font-size: 10.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-top: 2px;
+            display: block;
+        }
+        .acct-count-online { color: var(--status-online); }
+        .acct-count-gm { color: var(--accent); }
+        .acct-count-banned { color: var(--status-error); }
+
+        /* Search */
+        .acct-search-wrap { position: relative; }
+        .acct-search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+            pointer-events: none;
+        }
+        .acct-search-input { padding-left: 40px !important; }
+
+        /* Two-panel layout */
+        .acct-panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            min-height: 0;
+        }
+        .acct-list-panel, .acct-detail-panel {
+            min-height: 0;
+        }
+
+        /* Table row highlighting */
+        .acct-row { cursor: pointer; }
+        .acct-row.selected { background: var(--accent-light) !important; }
+        .acct-row:hover { background: var(--bg-card-alt); }
+
+        /* Status tags */
+        .acct-tag {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            display: inline-block;
+        }
+        .acct-tag-online { background: rgba(34,197,94,0.12); color: var(--status-online); }
+        .acct-tag-banned { background: rgba(239,68,68,0.12); color: var(--status-error); }
+        .acct-tag-muted { background: rgba(245,158,11,0.12); color: var(--status-warning); }
+        .acct-tag-locked { background: rgba(148,163,184,0.12); color: var(--text-muted); }
+        .acct-tag-gm { background: rgba(59,130,196,0.12); color: var(--accent); }
+
+        /* GM badge in detail */
+        .acct-gm-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(59,130,196,0.12);
+            color: var(--accent);
+        }
+
+        /* Pagination */
+        .acct-pagination {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .acct-page-btn {
+            background: none;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 2px 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .acct-page-btn:hover { background: var(--bg-card-alt); }
+        .acct-page-btn:disabled { opacity: 0.4; cursor: default; }
+        .acct-page-info { font-size: 12px; color: var(--text-muted); margin: 0 4px; }
+
+        /* Character list in detail */
+        .acct-char-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 18px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 13px;
+        }
+        .acct-char-row:last-child { border-bottom: none; }
+        .acct-char-name { font-weight: 600; color: var(--text-primary); }
+        .acct-char-detail { color: var(--text-secondary); font-size: 12px; }
+
+        /* Ban history rows */
+        .ban-row {
+            padding: 10px 18px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 13px;
+        }
+        .ban-row:last-child { border-bottom: none; }
+        .ban-active { border-left: 3px solid var(--status-error); }
+
+        /* Action buttons */
+        .acct-action {
+            font-size: 12.5px !important;
+            padding: 6px 12px !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/js/accounts.js" asp-append-version="true"></script>
+}

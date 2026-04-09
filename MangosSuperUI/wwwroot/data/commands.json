@@ -1,0 +1,190 @@
+{
+  "server": {
+    "label": "Server Management",
+    "commands": {
+      ".server info": "Display server version, connected players (current and max), and uptime.",
+      ".saveall": "Force-save all online players to the database immediately.",
+      ".server motd": "Show the current Message of the Day displayed to players on login.",
+      ".server plimit": "Show or set the player limit. Positive = max players, negative = min security level to login.",
+      ".server corpses": "Trigger corpse decay for all corpses in the world.",
+      ".server resetallraids": "Reset all raid instances immediately.",
+      ".server shutdown": "Shut the server down after #delay seconds. Players see a warning countdown.",
+      ".server shutdown cancel": "Cancel a pending shutdown timer.",
+      ".server restart": "Restart the server after #delay seconds. Players see a warning countdown.",
+      ".server restart cancel": "Cancel a pending restart timer.",
+      ".server set motd": "Set the Message of the Day. Shown to all players on login.",
+      ".announce": "Send a global chat message to all online players. Appears in chat log.",
+      ".notify": "Send a screen-center notification (raid-warning style) to all online players."
+    }
+  },
+  "accounts": {
+    "label": "Account Management",
+    "commands": {
+      ".account create": "Create a new account. Syntax: .account create $name $password",
+      ".account set gmlevel": "Set GM security level (0-6). 0=Player, 1=Mod, 2=Ticket, 3=GM, 4=Admin, 5=Dev, 6=Full Admin. Cannot target yourself.",
+      ".account set password": "Set password for an account. Password entered twice for confirmation.",
+      ".account characters": "List all characters belonging to an account.",
+      ".account onlinelist": "Show all currently online accounts with their character names.",
+      ".account lock": "Restrict an account to only log in from its current IP address."
+    }
+  },
+  "players": {
+    "label": "Player Actions",
+    "commands": {
+      ".kick": "Disconnect a player from the server immediately.",
+      ".revive": "Revive a dead player to full health. Works on offline characters (revived at next login).",
+      ".repairitems": "Repair all items in the player's inventory to full durability.",
+      ".character rename": "Force a character to rename at next login. The player chooses the new name.",
+      ".character level": "Set character level. Works offline. Stats recalculated. Level decrease may reset talents and drop high-level gear.",
+      ".character race": "Force a race change at next login.",
+      ".character skin": "Force an appearance change at next login.",
+      ".mute": "Prevent a player from chatting for #minutes. Syntax: .mute $player #minutes",
+      ".unmute": "Remove a mute, restoring chat ability.",
+      ".send mail": "Send text-only mail. Subject and body in quotes.",
+      ".send money": "Send mail with gold. Amount in copper (10000 = 1g). Syntax: .send money $player \"subject\" \"body\" #copper",
+      ".send items": "Send mail with items. Syntax: .send items $player \"subject\" \"body\" #itemId[:count]",
+      ".reset talents": "Reset all talent points. Player can redistribute them.",
+      ".reset spells": "Reset learned spells to race/class defaults.",
+      ".reset level": "Reset character to level 1 with starting stats.",
+      ".reset items": "Remove all items from character inventory.",
+      ".reset all": "Reset talents, spells, and stats simultaneously."
+    }
+  },
+  "bans": {
+    "label": "Bans & Discipline",
+    "commands": {
+      ".ban account": "Ban an account and kick the player. Use -1 for permaban, or timestring like '7d' or '4d20h3s'.",
+      ".ban character": "Ban the account owning a character. Same time format as account ban.",
+      ".ban ip": "Ban an IP address. All accounts from this IP are rejected.",
+      ".ban allip": "Ban an account AND all IPs associated with it.",
+      ".ban note": "Add a note to a ban record for GM reference.",
+      ".ban warn": "Issue a warning to an account without actually banning.",
+      ".unban account": "Remove a ban from an account.",
+      ".unban character": "Remove a ban from the account owning a character.",
+      ".unban ip": "Remove an IP from the ban list.",
+      ".banlist account": "Search account bans by name pattern, or show all.",
+      ".banlist character": "Search bans by character name pattern.",
+      ".banlist ip": "Search IP bans by pattern, or show all."
+    }
+  },
+  "world": {
+    "label": "World & Events",
+    "commands": {
+      ".event start": "Start a game event by ID. Change is runtime only, not saved to DB.",
+      ".event stop": "Stop a game event by ID. Runtime only.",
+      ".lookup event": "Find game event IDs by name.",
+      ".reload config": "Reload mangosd.conf values. Some settings need a full restart.",
+      ".reload all": "Reload ALL database tables. Heavy operation — may cause brief lag.",
+      ".reload all_quest": "Reload all quest-related tables.",
+      ".reload all_loot": "Reload all loot tables (creature, GO, item, fishing, skinning, etc.).",
+      ".reload all_npc": "Reload NPC gossip, text, trainer, and vendor tables.",
+      ".reload all_spell": "Reload all spell-related tables.",
+      ".reload all_gossips": "Reload all gossip menu tables.",
+      ".reload all_item": "Reload item templates, enchantments, and loot.",
+      ".reload creature_template": "Reload creature stats, flags, and loot IDs.",
+      ".reload item_template": "Reload item stats, names, and flags.",
+      ".reload quest_template": "Reload quest objectives, rewards, and text.",
+      ".reload npc_vendor": "Reload NPC vendor item lists.",
+      ".ticket list": "Show all open GM tickets.",
+      ".ticket onlinelist": "Show tickets from currently online players only.",
+      ".ticket escalatedlist": "Show escalated tickets needing attention.",
+      ".ticket closedlist": "Show recently closed tickets.",
+      ".wareffort info": "Show AQ War Effort progress — resources, stage, gong timer."
+    }
+  },
+  "bots": {
+    "label": "Bots (Player, AH, Battleground)",
+    "commands": {
+      ".bot info": "Show count and status of active player bots.",
+      ".bot start": "Start all configured player bots.",
+      ".bot stop": "Stop and remove all player bots from the world.",
+      ".bot reload": "Reload bot configuration from database.",
+      ".bot add": "Add bots to the world. Specify count or name.",
+      ".bot add_all": "Add ALL configured bots to the world.",
+      ".bot delete": "Remove a specific bot by name.",
+      ".bot ranadd": "Add a single random bot.",
+      ".ahbot reload": "Reload AH bot settings from config file.",
+      ".ahbot update": "Trigger an immediate AH bot item refresh cycle.",
+      ".battlebot add warsong": "Add bots to the Warsong Gulch BG queue.",
+      ".battlebot add arathi": "Add bots to the Arathi Basin BG queue.",
+      ".battlebot add alterac": "Add bots to the Alterac Valley BG queue.",
+      ".battlebot removeall": "Remove all battle bots from all queues."
+    }
+  },
+  "lookup": {
+    "label": "Lookup & Search",
+    "commands": {
+      ".lookup item": "Find item IDs by name substring. Returns ID, name, and quality.",
+      ".lookup creature": "Find creature template IDs by name substring.",
+      ".lookup quest": "Find quest IDs by name substring.",
+      ".lookup spell": "Find spell IDs by name substring.",
+      ".lookup object": "Find game object IDs by name substring.",
+      ".lookup itemset": "Find item set IDs by name substring.",
+      ".lookup skill": "Find skill IDs by name substring.",
+      ".lookup event": "Find game event IDs by name substring.",
+      ".lookup tele": "Find saved teleport locations by name.",
+      ".lookup faction": "Find faction IDs by name substring.",
+      ".lookup taxinode": "Find flight path node IDs by name.",
+      ".lookup area": "Find area/zone IDs by name.",
+      ".lookup guild": "Find guilds by name substring.",
+      ".lookup player ip": "Find all players who logged in from a specific IP.",
+      ".lookup player account": "Find all characters on an account.",
+      ".spell info": "Show comprehensive spell details — school, cast time, range, duration, effects.",
+      ".spell effects": "Show detailed spell effect breakdown — type, base values, targets."
+    }
+  },
+  "guild": {
+    "label": "Guild Management",
+    "commands": {
+      ".guild create": "Create a guild. Syntax: .guild create $leader \"$GuildName\" — name must be in quotes.",
+      ".guild delete": "Delete a guild by name (in quotes).",
+      ".guild invite": "Add a player to a guild. Guild name in quotes.",
+      ".guild uninvite": "Remove a player from their guild.",
+      ".guild rank": "Set a player's rank within their guild. Syntax: .guild rank $player #rank",
+      ".guild rename": "Rename a guild. Both old and new names in quotes.",
+      ".guild showlog": "Show the guild event log."
+    }
+  },
+  "teleport": {
+    "label": "Teleportation",
+    "commands": {
+      ".tele name": "Teleport a player to a named location. Works on offline players (moved at next login). Syntax: .tele name $player $location",
+      ".tele del": "Delete a saved teleport location from the game_tele table.",
+      ".lookup tele": "Search for available teleport locations by name substring."
+    }
+  },
+  "chat": {
+    "label": "Chat & Antispam",
+    "commands": {
+      ".antispam add": "Add a word/phrase to the server-side spam filter. Messages containing it are blocked.",
+      ".antispam remove": "Remove a word/phrase from the spam filter.",
+      ".antispam replace": "Add a replacement rule — occurrences of word A in chat are replaced with word B.",
+      ".antispam removereplace": "Remove a replacement rule.",
+      ".spamer mute": "Mute a player flagged as a spammer.",
+      ".spamer unmute": "Unmute a previously muted spammer.",
+      ".spamer list": "Show the current list of muted spammers.",
+      ".gm ingame": "Show GMs currently online and visible in-game. Available to all players.",
+      ".gm list": "Show all GM accounts and security levels. Admin only."
+    }
+  },
+  "more": {
+    "label": "More (Dumps, Pets, Mass Send, Misc)",
+    "commands": {
+      ".gold": "Show gold/economy server statistics.",
+      ".pdump write": "Export a character to a dump file. Includes inventory, spells, quests, rep. Syntax: .pdump write $file $player",
+      ".pdump load": "Import a character from dump file. Syntax: .pdump load $file $account [$newname]",
+      ".instance stats": "Show active instance count, players inside, and reset timers.",
+      ".instance continents": "Show continent map information.",
+      ".pet list": "List all pets owned by a character.",
+      ".pet rename": "Rename a pet.",
+      ".pet delete": "Delete a pet from a character.",
+      ".send mass mail": "Send mail to ALL players on the server.",
+      ".send mass money": "Send gold to ALL players. Amount in copper.",
+      ".send mass items": "Send items to ALL players.",
+      ".list maps": "Show information about all loaded maps.",
+      ".variable": "Show or manage server variables from the variables DB table.",
+      ".log": "Show or set server log level and filters.",
+      ".pbcast stats": "Show player broadcast system statistics."
+    }
+  }
+}

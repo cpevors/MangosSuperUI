@@ -1,0 +1,383 @@
+@{
+    ViewData["Title"] = "Game Objects";
+}
+
+<div class="app-shell">
+    <partial name="_Sidebar" />
+
+    <div class="main-content">
+        <div class="content-header" style="display:flex; align-items:flex-start; justify-content:space-between;">
+            <div>
+                <h1>Game Objects</h1>
+                <p>Browse all <span id="totalGoCount">—</span> game objects in the world database</p>
+            </div>
+            <button class="btn-outline-subtle" id="btnCustomSummary" style="margin-top:4px; white-space:nowrap;">
+                <i class="fa-solid fa-star" style="color:var(--status-online);"></i> Custom Objects
+            </button>
+        </div>
+
+        <div class="content-body">
+            <!-- Baseline Warning Banner -->
+            <div id="baselineWarning"></div>
+
+            <!-- Search & Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="cmd-label">Search by name or entry ID</label>
+                            <input type="text" class="form-input" id="goSearch" placeholder="e.g. Songflower or 164882" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="cmd-label">Type</label>
+                            <select class="form-input" id="filterGoType">
+                                <option value="">All</option>
+                                <option value="0">Door</option>
+                                <option value="1">Button</option>
+                                <option value="2">Quest Giver</option>
+                                <option value="3">Chest</option>
+                                <option value="5">Generic / Decoration</option>
+                                <option value="6">Trap</option>
+                                <option value="7">Chair</option>
+                                <option value="8">Spell Focus</option>
+                                <option value="10">Goober (Clickable)</option>
+                                <option value="18">Ritual</option>
+                                <option value="22">Spell Caster</option>
+                                <option value="25">Fishing Hole</option>
+                                <option value="30">Aura Generator</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="custom-only-label">
+                                <input type="checkbox" id="chkCustomOnly" /> Custom Only
+                            </label>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn-accent w-100" id="btnSearchGo">
+                                <i class="fa-solid fa-magnifying-glass"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="row" id="goMainLayout">
+                <!-- Object List -->
+                <div class="col-lg-7" id="colGoList">
+                    <div class="card">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span><i class="fa-solid fa-cubes" style="color: var(--accent);"></i> Results</span>
+                            <span class="text-muted" style="font-size: 12px;" id="goResultInfo"></span>
+                        </div>
+                        <div class="card-body p-0" id="goListContainer">
+                            <div class="text-center p-4 text-muted">Search to browse game objects</div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between" id="goPaginationBar" style="display: none !important;">
+                            <button class="btn-outline-subtle btn-sm" id="btnGoPrevPage"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+                            <span style="font-size: 12.5px; color: var(--text-secondary);" id="goPageInfo"></span>
+                            <button class="btn-outline-subtle btn-sm" id="btnGoNextPage">Next <i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detail Panel -->
+                <div class="col-lg-5" id="colGoDetail">
+                    <div class="card" id="goDetailPanel" style="position: sticky; top: 16px;">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span><i class="fa-solid fa-circle-info" style="color: var(--accent);"></i> Game Object Detail</span>
+                            <div id="goDetailActions" style="display: none;">
+                                <button class="btn-sm btn-accent" id="btnCloneGo" title="Clone to custom object">
+                                    <i class="fa-solid fa-clone"></i> Clone
+                                </button>
+                                <button class="btn-sm btn-outline-subtle" id="btnEditGoOriginal" title="Edit this object directly">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body" id="goDetailContent">
+                            <div class="text-center text-muted p-3">Click a game object to view details</div>
+                        </div>
+
+                        <!-- OG Changelog Panel -->
+                        <div class="changelog-panel" id="goChangelogPanel" style="display:none;">
+                            <div class="changelog-header" id="goChangelogToggle">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Changes from Original
+                                <span class="changelog-count-badge clean" id="goChangeCount">0</span>
+                                <i class="fa-solid fa-chevron-down chevron"></i>
+                            </div>
+                            <div class="changelog-body" id="goChangelogBody">
+                                <div id="goChangelogContent"></div>
+                            </div>
+                        </div>
+
+                        <!-- OG Reset Button -->
+                        <div id="goResetContainer" style="display:none; padding: 8px 14px; border-top: 1px solid var(--border-light);">
+                            <button class="btn-reset-og" id="btnResetGoOG">
+                                <i class="fa-solid fa-rotate-left"></i> Reset to Original
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Slide-Over Panel (hidden by default) -->
+                <div class="col-lg-5 edit-panel-col" id="colGoEdit" style="display: none;">
+                    <div class="card edit-panel" id="editGoPanel" style="position: sticky; top: 16px;">
+                        <!-- Sticky header -->
+                        <div class="card-header edit-panel-header" id="editGoHeader">
+                            <div class="d-flex align-items-center gap-2" style="flex: 1; min-width: 0;">
+                                <div class="go-edit-icon-wrap">
+                                    <i class="fa-solid fa-cube"></i>
+                                </div>
+                                <div style="min-width: 0;">
+                                    <div id="editGoHeaderName" style="font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">New Object</div>
+                                    <span class="edit-badge" id="editGoBadge">CUSTOM</span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 flex-shrink-0">
+                                <button class="btn-sm btn-accent" id="btnSaveGo"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                                <button class="btn-sm btn-outline-subtle" id="btnCancelGoEdit"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                            </div>
+                        </div>
+                        <!-- Base game warning bar -->
+                        <div class="edit-warning-bar" id="editGoWarningBar" style="display: none;">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Editing base game object — changes affect all references</span>
+                        </div>
+                        <!-- Scrollable form body -->
+                        <div class="card-body edit-panel-body" id="editGoFormContainer">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Original Confirmation Modal -->
+<div class="modal fade" id="editGoOriginalModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <div class="modal-header" style="border-color: var(--status-warning); background: rgba(255,170,0,0.08);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600; color: var(--status-warning);">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Edit Base Game Object
+                </h5>
+            </div>
+            <div class="modal-body" style="font-size: 13.5px;">
+                <p>You're about to modify <strong id="confirmGoName"></strong> <span class="text-muted" id="confirmGoEntry"></span>.</p>
+                <p>Changes take effect immediately and affect <strong>all spawns</strong> that reference this template. This action is logged.</p>
+            </div>
+            <div class="modal-footer" style="border-color: var(--border-light); gap: 8px;">
+                <button class="btn-sm btn-accent" id="btnConfirmGoCloneInstead">
+                    <i class="fa-solid fa-clone"></i> Clone Instead
+                </button>
+                <button class="btn-sm btn-outline-warning" id="btnConfirmGoEditOriginal">
+                    <i class="fa-solid fa-pen"></i> Edit Original
+                </button>
+                <button class="btn-sm btn-outline-subtle" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Confirmation Modal (shared by baseline system) -->
+<div class="modal fade" id="resetConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <div class="modal-header" style="border-color: var(--status-warning); background: rgba(255,170,0,0.06);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600; color: var(--status-warning);">
+                    <i class="fa-solid fa-rotate-left"></i> <span id="resetModalTitle">Reset to Original</span>
+                </h5>
+            </div>
+            <div class="modal-body" style="font-size: 13.5px;">
+                <p id="resetModalBody">Are you sure you want to reset this to its original baseline values?</p>
+                <p class="text-muted" style="font-size: 12px; margin-bottom: 0;">
+                    <i class="fa-solid fa-circle-info" style="font-size: 10px;"></i>
+                    This restores the original database values from before any MangosSuperUI edits. The action is logged.
+                </p>
+            </div>
+            <div class="modal-footer" style="border-color: var(--border-light); gap: 8px;">
+                <button class="btn-sm btn-outline-warning" id="btnConfirmReset">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button class="btn-sm btn-outline-subtle" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Spell Picker Modal -->
+<div class="modal fade" id="spellPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <div class="modal-header" style="border-color: var(--border-light);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600;">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent);"></i> Choose Spell
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-input" id="spellPickerSearch" placeholder="Search spells (e.g. Mark of the Wild, Rejuvenation, 15366)" />
+                </div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted" style="font-size: 12px;" id="spellPickerInfo"></span>
+                    <div class="d-flex gap-2 align-items-center">
+                        <button class="btn-sm btn-outline-subtle" id="btnSpellPickerPrev"><i class="fa-solid fa-chevron-left"></i></button>
+                        <span class="text-muted" style="font-size: 12px; line-height: 28px;" id="spellPickerPageInfo"></span>
+                        <button class="btn-sm btn-outline-subtle" id="btnSpellPickerNext"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div id="spellPickerResults">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Content Summary Modal -->
+<div class="modal fade" id="customSummaryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <div class="modal-header" style="border-color: var(--border-light);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600;">
+                    <i class="fa-solid fa-star" style="color: var(--status-online);"></i> Custom Game Objects
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="customSummaryBody">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* ── List Rows ── */
+        .go-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: background var(--transition-fast); }
+        .go-row:hover { background: var(--bg-input); }
+        .go-row.active { background: var(--accent-subtle); border-left: 3px solid var(--accent); }
+        .go-row:last-child { border-bottom: none; }
+
+        .go-type-badge { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 3px; background: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border-light); white-space: nowrap; }
+        .go-model-indicator { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--accent-subtle); color: var(--accent); font-size: 11px; flex-shrink: 0; }
+        .go-model-indicator.no-model { background: transparent; color: var(--text-muted); }
+        .go-name { font-size: 13px; font-weight: 500; }
+        .go-meta { font-size: 11px; color: var(--text-muted); }
+        .go-entry { font-size: 10px; color: var(--text-muted); font-family: monospace; }
+
+        /* ── Detail Panel ── */
+        .model-preview-container { width: 100%; height: 200px; background: var(--bg-input); border-radius: var(--radius-sm); border: 1px solid var(--border); overflow: hidden; margin-bottom: 12px; }
+        .model-preview-container model-viewer { width: 100%; height: 100%; }
+        .no-model-placeholder { width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; background: var(--bg-input); border-radius: var(--radius-sm); border: 1px solid var(--border); color: var(--text-muted); font-size: 13px; margin-bottom: 12px; }
+
+        .detail-section { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border-light); }
+        .detail-section-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .detail-row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 2px 0; }
+        .detail-row .label { color: var(--text-secondary); }
+        .detail-row .value { color: var(--text-primary); font-weight: 500; }
+
+        .spawn-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 8px; font-size: 11px; color: var(--text-secondary); }
+
+        /* ── Edit Panel ── */
+        .edit-panel-col { animation: slideIn 0.25s ease-out; }
+        @@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .edit-panel { border-color: var(--accent); }
+        .edit-panel.base-game-mode { border-color: var(--status-warning); }
+        .edit-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 2; }
+        .edit-panel-body { max-height: calc(100vh - 140px); overflow-y: auto; }
+        .edit-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 1px 7px; border-radius: 3px; background: rgba(0,200,100,0.15); color: #00c864; }
+        .edit-badge.base-game { background: rgba(255,170,0,0.15); color: var(--status-warning); }
+        .edit-warning-bar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 12px; font-weight: 500; color: var(--status-warning); background: rgba(255,170,0,0.06); border-bottom: 1px solid rgba(255,170,0,0.2); }
+        .edit-warning-bar span { flex: 1; }
+
+        .go-edit-icon-wrap { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--accent-subtle); color: var(--accent); font-size: 16px; flex-shrink: 0; }
+
+        .edit-section { margin-bottom: 12px; border: 1px solid var(--border-light); border-radius: var(--radius-md); overflow: hidden; }
+        .edit-section-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg-input); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-primary); user-select: none; transition: background var(--transition-fast); }
+        .edit-section-header:hover { background: var(--border-light); }
+        .edit-section-header .chevron { margin-left: auto; transition: transform 0.2s; font-size: 11px; color: var(--text-muted); }
+        .edit-section-header.collapsed .chevron { transform: rotate(-90deg); }
+        .edit-section-body { padding: 14px; }
+        .edit-section-body.collapsed { display: none; }
+        .edit-field { margin-bottom: 12px; }
+        .edit-field:last-child { margin-bottom: 0; }
+        .edit-field label { display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .edit-field input, .edit-field select, .edit-field textarea { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); padding: 6px 10px; font-size: 13px; transition: border-color var(--transition-fast); }
+        .edit-field input:focus, .edit-field select:focus, .edit-field textarea:focus { border-color: var(--accent); outline: none; }
+        .edit-field-inline { display: flex; gap: 10px; align-items: flex-end; }
+        .edit-field-inline .edit-field { flex: 1; margin-bottom: 0; }
+
+        .spell-name-preview { font-size: 11px; color: var(--accent-light); font-style: italic; margin-top: 3px; }
+
+        .btn-outline-warning { background: none; border: 1px solid var(--status-warning); color: var(--status-warning); border-radius: var(--radius-sm); padding: 4px 12px; font-size: 12.5px; cursor: pointer; transition: all var(--transition-fast); }
+        .btn-outline-warning:hover { background: rgba(255,170,0,0.12); }
+
+        .edit-toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; padding: 12px 20px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; animation: toastIn 0.3s ease-out; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .edit-toast.success { background: var(--status-online); color: white; }
+        .edit-toast.error { background: var(--status-error); color: white; }
+        @@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ── Boolean Toggle ── */
+        .bool-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 0; font-weight: 400; text-transform: none; letter-spacing: 0; }
+        .bool-toggle input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+        .bool-toggle-label { font-size: 12.5px; color: var(--text-secondary); }
+
+        /* ── Field Hints ── */
+        .field-hint { font-size: 11px; margin-top: 3px; line-height: 1.4; }
+        .field-hint .school-label { font-size: 10px; padding: 1px 5px; border-radius: 3px; background: var(--bg-input); color: var(--text-secondary); }
+
+        /* ── Field Descriptions ── */
+        .field-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 4px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+        /* ── Inherited Data Section ── */
+        .inherited-data-section { margin-top: 14px; border-top: 1px dashed var(--border-light); padding-top: 8px; }
+        .inherited-data-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; padding: 4px 0; user-select: none; }
+        .inherited-data-toggle:hover { color: var(--text-secondary); }
+        .inherited-chevron { font-size: 9px; transition: transform 0.2s; }
+        .inherited-chevron.open { transform: rotate(90deg); }
+        .inherited-count { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 8px; background: rgba(255,152,0,0.12); color: var(--status-warning); }
+        .inherited-data-note { font-size: 11px; color: var(--text-muted); padding: 6px 0 10px; line-height: 1.4; font-style: italic; }
+
+        /* ── Spell Picker ── */
+        .sp-pick-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: background var(--transition-fast); }
+        .sp-pick-row:hover { background: var(--accent-subtle); }
+        .sp-pick-row:last-child { border-bottom: none; }
+        .sp-pick-icon { width: 28px; height: 28px; border-radius: var(--radius-sm); border: 1px solid var(--border); flex-shrink: 0; image-rendering: pixelated; }
+        .sp-pick-name { font-size: 13px; font-weight: 500; }
+        .sp-pick-rank { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+        .sp-pick-meta { font-size: 11px; color: var(--text-muted); }
+        .sp-pick-id { font-size: 10px; color: var(--text-muted); font-family: monospace; flex-shrink: 0; }
+
+        /* ── Custom Only Filter ── */
+        .custom-only-label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; padding: 8px 0; }
+        .custom-only-label input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--status-online); cursor: pointer; }
+
+        /* ── Custom Summary Modal ── */
+        .cs-total { font-size: 13px; color: var(--text-secondary); padding-bottom: 12px; border-bottom: 1px solid var(--border-light); margin-bottom: 12px; }
+        .cs-group { margin-bottom: 8px; border: 1px solid var(--border-light); border-radius: var(--radius-md); overflow: hidden; }
+        .cs-group-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg-input); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-primary); user-select: none; transition: background var(--transition-fast); }
+        .cs-group-header:hover { background: var(--border-light); }
+        .cs-group-chevron { font-size: 9px; color: var(--text-muted); transition: transform 0.2s; }
+        .cs-group-chevron.open { transform: rotate(90deg); }
+        .cs-group-name { flex: 1; }
+        .cs-group-count { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 8px; background: var(--accent-subtle); color: var(--accent); }
+        .cs-group-body { display: none; }
+        .cs-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; border-top: 1px solid var(--border-light); cursor: pointer; transition: background var(--transition-fast); }
+        .cs-item:hover { background: var(--accent-subtle); }
+        .cs-item-name { font-size: 13px; font-weight: 500; }
+        .cs-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+        .cs-item-right { flex-shrink: 0; }
+        .cs-spawn-badge { font-size: 11px; color: var(--status-online); display: flex; align-items: center; gap: 3px; }
+        .cs-spawn-badge.none { color: var(--text-muted); }
+    </style>
+}
+
+@section Scripts {
+    <!-- Google's model-viewer web component for 3D preview -->
+    <script type="module" src="~/lib/model-viewer.min.js"></script>
+    <script src="~/js/gameobjects.js" asp-append-version="true"></script>
+}

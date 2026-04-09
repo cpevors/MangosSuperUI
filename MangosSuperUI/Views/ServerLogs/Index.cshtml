@@ -1,0 +1,188 @@
+@{
+    ViewData["Title"] = "Server Logs";
+}
+
+<div class="app-shell">
+    <partial name="_Sidebar" />
+
+    <div class="main-content">
+        <div class="content-header">
+            <h1>Server Logs</h1>
+            <p>VMaNGOS server event logs — characters, chat, economy, security</p>
+        </div>
+
+        <div class="content-body" style="display: flex; flex-direction: column; overflow: hidden;">
+            <!-- Tab Navigation -->
+            <div class="sl-tabs" id="slTabs">
+                <button class="sl-tab active" data-tab="characters"><i class="fa-solid fa-user-clock"></i> Characters</button>
+                <button class="sl-tab" data-tab="chat"><i class="fa-solid fa-comment-dots"></i> Chat</button>
+                <button class="sl-tab" data-tab="trades"><i class="fa-solid fa-coins"></i> Economy</button>
+                <button class="sl-tab" data-tab="transactions"><i class="fa-solid fa-right-left"></i> Transactions</button>
+                <button class="sl-tab" data-tab="warden"><i class="fa-solid fa-shield-halved"></i> Warden</button>
+                <button class="sl-tab" data-tab="spam"><i class="fa-solid fa-triangle-exclamation"></i> Spam</button>
+                <button class="sl-tab" data-tab="behavior"><i class="fa-solid fa-magnifying-glass-chart"></i> Behavior</button>
+                <button class="sl-tab" data-tab="battlegrounds"><i class="fa-solid fa-flag"></i> Battlegrounds</button>
+            </div>
+
+            <!-- Overview Cards (shown initially) -->
+            <div id="slOverview" class="sl-overview">
+                <div class="row g-3 mb-4" style="padding-top: 16px;">
+                    <div class="col-md-3">
+                        <div class="card sl-stat-card" data-tab="characters">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <i class="fa-solid fa-user-clock" style="font-size: 20px; color: var(--accent);"></i>
+                                <div>
+                                    <div class="sl-stat-label">Character Events</div>
+                                    <div class="sl-stat-value" id="slCountCharacters">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card sl-stat-card" data-tab="chat">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <i class="fa-solid fa-comment-dots" style="font-size: 20px; color: #bb9af7;"></i>
+                                <div>
+                                    <div class="sl-stat-label">Chat Messages</div>
+                                    <div class="sl-stat-value" id="slCountChat">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card sl-stat-card" data-tab="trades">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <i class="fa-solid fa-coins" style="font-size: 20px; color: #c9a054;"></i>
+                                <div>
+                                    <div class="sl-stat-label">Economy Events</div>
+                                    <div class="sl-stat-value" id="slCountTrades">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card sl-stat-card" data-tab="warden">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <i class="fa-solid fa-shield-halved" style="font-size: 20px; color: var(--status-error);"></i>
+                                <div>
+                                    <div class="sl-stat-label">Warden Alerts</div>
+                                    <div class="sl-stat-value" id="slCountWarden">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content Area -->
+            <div class="sl-content" id="slContent">
+                <!-- Filter Bar (per tab) -->
+                <div class="sl-filter-bar" id="slFilterBar">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <div class="al-search-wrap" style="min-width: 220px;">
+                            <i class="fa-solid fa-magnifying-glass al-search-icon"></i>
+                            <input type="text" class="form-input al-search" id="slSearch"
+                                   placeholder="Search..." autocomplete="off" />
+                        </div>
+                        <div class="al-chips" id="slTypeChips"></div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div id="slResults"></div>
+
+                <!-- Pagination -->
+                <div class="d-flex align-items-center justify-content-between mt-3 mb-4" id="slPagination" style="display: none;">
+                    <div class="al-page-info" id="slPageInfo"></div>
+                    <div class="d-flex gap-2">
+                        <button class="btn-outline-subtle" id="slPrev"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+                        <button class="btn-outline-subtle" id="slNext">Next <i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Tabs */
+        .sl-tabs {
+            display: flex; gap: 2px; border-bottom: 1px solid var(--border-light);
+            margin-bottom: 0; flex-shrink: 0; flex-wrap: wrap;
+        }
+        .sl-tab {
+            padding: 8px 14px; font-size: 12.5px; font-weight: 500; color: var(--text-secondary);
+            background: none; border: none; border-bottom: 2px solid transparent;
+            cursor: pointer; transition: all var(--transition-fast); white-space: nowrap;
+        }
+        .sl-tab:hover { color: var(--text-primary); background: var(--bg-card-alt); }
+        .sl-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .sl-tab i { margin-right: 5px; }
+
+        /* Overview stat cards */
+        .sl-stat-card { cursor: pointer; transition: border-color var(--transition-fast); }
+        .sl-stat-card:hover { border-color: var(--accent-light); }
+        .sl-stat-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+        .sl-stat-value { font-weight: 600; font-size: 18px; color: var(--text-primary); }
+
+        /* Content area */
+        .sl-content { flex: 1; overflow-y: auto; min-height: 0; padding-top: 12px; }
+        .sl-filter-bar { margin-bottom: 12px; }
+
+        /* Log entry cards */
+        .sl-entry {
+            background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-md);
+            padding: 12px 16px; margin-bottom: 6px; font-size: 13px;
+        }
+        .sl-entry-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .sl-entry-time { font-size: 11.5px; color: var(--text-muted); font-family: 'Consolas','Courier New',monospace; min-width: 140px; }
+        .sl-entry-badge {
+            font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+            padding: 2px 8px; border-radius: 4px;
+        }
+        .sl-entry-body { margin-top: 6px; font-size: 12.5px; color: var(--text-secondary); }
+        .sl-entry-body strong { color: var(--text-primary); font-weight: 600; }
+
+        /* Badge colors */
+        .sl-badge-login { background: rgba(158,206,106,0.12); color: #6aab3e; }
+        .sl-badge-logout { background: rgba(169,177,193,0.08); color: var(--text-muted); }
+        .sl-badge-create { background: rgba(122,162,247,0.12); color: #7aa2f7; }
+        .sl-badge-delete { background: rgba(247,118,142,0.12); color: #f7768e; }
+        .sl-badge-lostsocket { background: rgba(224,175,104,0.12); color: #c9a054; }
+        .sl-badge-say { background: rgba(200,208,218,0.1); color: var(--text-secondary); }
+        .sl-badge-whisp { background: rgba(187,154,247,0.12); color: #bb9af7; }
+        .sl-badge-group { background: rgba(122,162,247,0.12); color: #7aa2f7; }
+        .sl-badge-guild { background: rgba(158,206,106,0.12); color: #6aab3e; }
+        .sl-badge-officer { background: rgba(158,206,106,0.15); color: #4d8c2a; }
+        .sl-badge-raid { background: rgba(224,175,104,0.12); color: #c9a054; }
+        .sl-badge-bg { background: rgba(247,118,142,0.12); color: #f7768e; }
+        .sl-badge-chan { background: rgba(169,177,193,0.08); color: var(--text-muted); }
+        .sl-badge-default { background: var(--accent-subtle); color: var(--accent); }
+
+        /* Chat message styling */
+        .sl-chat-msg {
+            font-family: 'Consolas','Courier New',monospace; font-size: 12px;
+            background: var(--bg-body); padding: 4px 8px; border-radius: 4px;
+            margin-top: 4px; color: var(--text-primary); word-break: break-word;
+        }
+
+        /* Reuse from activity */
+        .al-search-wrap { position: relative; min-width: 260px; }
+        .al-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; pointer-events: none; }
+        .al-search { padding-left: 34px !important; font-size: 13px; }
+        .al-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+        .al-chip {
+            padding: 4px 12px; font-size: 11.5px; font-weight: 500; border-radius: 20px;
+            border: 1px solid var(--border-light); background: var(--bg-card); color: var(--text-secondary);
+            cursor: pointer; transition: all var(--transition-fast); white-space: nowrap;
+        }
+        .al-chip:hover { border-color: var(--accent); color: var(--accent); }
+        .al-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .al-page-info { font-size: 12.5px; color: var(--text-muted); }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/js/serverlogs.js" asp-append-version="true"></script>
+}

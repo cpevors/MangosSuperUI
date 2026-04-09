@@ -1,0 +1,399 @@
+@{
+    ViewData["Title"] = "Player Actions";
+}
+
+<div class="app-shell">
+    <partial name="_Sidebar" />
+
+    <div class="main-content">
+        <div class="content-header">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h1>Player Actions</h1>
+                    <p>Search for a player, then take action</p>
+                </div>
+                <button id="btnToggleHelp" onclick="HelpSystem.toggle()" title="Show command help">
+                    <i class="fa-solid fa-circle-question"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <!-- Search Bar -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="player-search-wrap">
+                        <i class="fa-solid fa-magnifying-glass player-search-icon"></i>
+                        <input type="text"
+                               class="form-input player-search-input"
+                               id="playerSearch"
+                               placeholder="Search by character name (3+ characters)..."
+                               autocomplete="off"
+                               spellcheck="false" />
+                        <div class="player-search-dropdown" id="searchDropdown"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player Info Card (hidden until selected) -->
+            <div id="playerPanel" style="display: none;">
+
+                <!-- Info Header -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="player-avatar" id="playerAvatar">
+                                    <i class="fa-solid fa-user"></i>
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="player-name" id="pName">—</span>
+                                        <span class="player-status" id="pStatus">Offline</span>
+                                    </div>
+                                    <div class="player-subtitle">
+                                        Level <span id="pLevel">—</span>
+                                        <span id="pRace">—</span>
+                                        <span id="pClass">—</span>
+                                        <span class="text-muted">·</span>
+                                        <span id="pGender">—</span>
+                                    </div>
+                                    <div class="player-subtitle" style="margin-top: 2px;">
+                                        <span class="text-muted">Guild:</span> <span id="pGuild">None</span>
+                                        <span class="text-muted" style="margin-left: 12px;">Account:</span> <span id="pAccount">—</span>
+                                        <span class="text-muted" id="pGmBadge" style="display: none; margin-left: 8px;" class="player-gm-badge"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-outline-subtle" id="btnRefreshPlayer" title="Refresh">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                            </button>
+                        </div>
+
+                        <!-- Stats Row -->
+                        <div class="player-stats-row">
+                            <div class="player-stat">
+                                <div class="player-stat-label">Gold</div>
+                                <div class="player-stat-value" id="pGold">—</div>
+                            </div>
+                            <div class="player-stat">
+                                <div class="player-stat-label">XP</div>
+                                <div class="player-stat-value" id="pXp">—</div>
+                            </div>
+                            <div class="player-stat">
+                                <div class="player-stat-label">Played</div>
+                                <div class="player-stat-value" id="pPlayed">—</div>
+                            </div>
+                            <div class="player-stat">
+                                <div class="player-stat-label">Created</div>
+                                <div class="player-stat-value" id="pCreated">—</div>
+                            </div>
+                            <div class="player-stat">
+                                <div class="player-stat-label">Last Seen</div>
+                                <div class="player-stat-value" id="pLastSeen">—</div>
+                            </div>
+                            <div class="player-stat">
+                                <div class="player-stat-label">Zone / Map</div>
+                                <div class="player-stat-value" id="pZone">—</div>
+                            </div>
+                            <div class="player-stat">
+                                <div class="player-stat-label">Last IP</div>
+                                <div class="player-stat-value" id="pLastIp">—</div>
+                            </div>
+                            <div class="player-stat">
+                                <div class="player-stat-label">Highest Rank</div>
+                                <div class="player-stat-value" id="pRankInfo">—</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Cards -->
+                <div class="row g-3 mb-3">
+                    <!-- Character Actions -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-user-pen" style="color: var(--accent);"></i>
+                                Character
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <button class="btn-accent pa-btn" data-action="revive"><i class="fa-solid fa-heart-pulse"></i> Revive</button>
+                                    <button class="btn-outline-subtle pa-btn" data-action="repair"><i class="fa-solid fa-wrench"></i> Repair</button>
+                                    <button class="btn-outline-subtle pa-btn" data-action="rename"><i class="fa-solid fa-pen"></i> Rename</button>
+                                    <button class="btn-outline-subtle pa-btn" data-action="resetTalents"><i class="fa-solid fa-arrows-rotate"></i> Reset Talents</button>
+                                    <button class="btn-outline-subtle pa-btn" data-action="resetSpells"><i class="fa-solid fa-book"></i> Reset Spells</button>
+                                    <button class="btn-outline-subtle pa-btn" data-action="resetAll"><i class="fa-solid fa-rotate-left"></i> Reset All</button>
+                                </div>
+                                <div class="d-flex gap-2 align-items-end">
+                                    <div style="flex: 1;">
+                                        <label class="cmd-label">Set Level</label>
+                                        <input type="number" class="form-input" id="paLevel" value="60" min="1" max="60" />
+                                    </div>
+                                    <button class="btn-accent pa-btn" data-action="setLevel">Set Level</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Communication -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-envelope" style="color: var(--accent);"></i>
+                                Communication
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <button class="btn-accent pa-btn" data-action="kick" style="background: var(--status-error);"><i class="fa-solid fa-right-from-bracket"></i> Kick</button>
+                                    <button class="btn-outline-subtle pa-btn" data-action="mute"><i class="fa-solid fa-volume-xmark"></i> Mute 30m</button>
+                                    <button class="btn-outline-subtle pa-btn" data-action="unmute"><i class="fa-solid fa-volume-high"></i> Unmute</button>
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <label class="cmd-label">Subject</label>
+                                        <input type="text" class="form-input" id="paMailSubject" value="GM" />
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="cmd-label">Message</label>
+                                        <input type="text" class="form-input" id="paMailBody" value="Enjoy!" />
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <label class="cmd-label">Gold (copper)</label>
+                                        <input type="number" class="form-input" id="paGold" placeholder="10000" />
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="cmd-label">Item ID:Count</label>
+                                        <input type="text" class="form-input" id="paItem" placeholder="19019:1" />
+                                    </div>
+                                    <div class="col-4 d-flex align-items-end gap-1">
+                                        <button class="btn-accent pa-btn" data-action="sendGold" title="Send Gold"><i class="fa-solid fa-coins"></i></button>
+                                        <button class="btn-outline-subtle pa-btn" data-action="sendItem" title="Send Item"><i class="fa-solid fa-box"></i></button>
+                                        <button class="btn-outline-subtle pa-btn" data-action="sendMail" title="Send Mail"><i class="fa-solid fa-envelope"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <!-- Teleport -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-location-dot" style="color: var(--accent);"></i>
+                                Teleport
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <button class="btn-outline-subtle pa-tele" data-loc="Orgrimmar">Orgrimmar</button>
+                                    <button class="btn-outline-subtle pa-tele" data-loc="Stormwind">Stormwind</button>
+                                    <button class="btn-outline-subtle pa-tele" data-loc="Ironforge">Ironforge</button>
+                                    <button class="btn-outline-subtle pa-tele" data-loc="ThunderBluff">Thunder Bluff</button>
+                                    <button class="btn-outline-subtle pa-tele" data-loc="Undercity">Undercity</button>
+                                    <button class="btn-outline-subtle pa-tele" data-loc="Darnassus">Darnassus</button>
+                                    <button class="btn-outline-subtle pa-tele" data-loc="Gadgetzan">Gadgetzan</button>
+                                    <button class="btn-outline-subtle pa-tele" data-loc="BootyBay">Booty Bay</button>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-input flex-grow-1" id="paCustomTele" placeholder="Custom location (use Lookup to find)" />
+                                    <button class="btn-accent pa-btn" data-action="customTele"><i class="fa-solid fa-location-arrow"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Actions -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-id-badge" style="color: var(--accent);"></i>
+                                Account
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <button class="btn-outline-subtle pa-btn" data-action="banAccount" style="color: var(--status-error);"><i class="fa-solid fa-ban"></i> Ban Account</button>
+                                    <button class="btn-outline-subtle pa-btn" data-action="unbanAccount"><i class="fa-solid fa-circle-check"></i> Unban</button>
+                                    <button class="btn-outline-subtle pa-btn" data-action="banChar" style="color: var(--status-error);"><i class="fa-solid fa-ban"></i> Ban Character</button>
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <label class="cmd-label">Set GM Level</label>
+                                        <select class="form-input" id="paGmLevel">
+                                            <option value="0">0 — Player</option>
+                                            <option value="1">1 — Moderator</option>
+                                            <option value="2">2 — Ticket Master</option>
+                                            <option value="3">3 — Game Master</option>
+                                            <option value="4">4 — Basic Admin</option>
+                                            <option value="5">5 — Developer</option>
+                                            <option value="6">6 — Administrator</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6 d-flex align-items-end">
+                                        <button class="btn-accent pa-btn" data-action="setGmLevel">Set GM Level</button>
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="cmd-label">New Password</label>
+                                        <input type="text" class="form-input" id="paNewPass" placeholder="newpassword" />
+                                    </div>
+                                    <div class="col-6 d-flex align-items-end">
+                                        <button class="btn-accent pa-btn" data-action="setPassword">Set Password</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Response Output -->
+                <div class="card">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-terminal" style="color: var(--accent);"></i>
+                            Response
+                        </div>
+                        <button class="btn-outline-subtle" id="btnClearPaOutput" style="padding: 2px 8px; font-size: 11px;">Clear</button>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="console-output" id="paOutput" style="height: 140px; border-radius: 0 0 var(--radius-lg) var(--radius-lg);"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center" style="padding: 80px 20px; color: var(--text-muted);">
+                <i class="fa-solid fa-user-magnifying-glass" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                <div style="font-size: 16px; font-weight: 500;">Search for a player to get started</div>
+                <div style="font-size: 13px; margin-top: 4px;">Type at least 3 characters of a character name above</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .player-search-wrap {
+            position: relative;
+        }
+        .player-search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+            pointer-events: none;
+        }
+        .player-search-input {
+            padding-left: 40px !important;
+            font-size: 15px !important;
+        }
+        .player-search-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            border-top: none;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            z-index: 200;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        .search-result {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: background var(--transition-fast);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .search-result:last-child { border-bottom: none; }
+        .search-result:hover { background: var(--bg-card-alt); }
+        .search-result-name { font-weight: 600; font-size: 14px; color: var(--text-primary); }
+        .search-result-detail { font-size: 12px; color: var(--text-secondary); }
+        .search-result-online { color: var(--status-online); font-size: 11px; font-weight: 600; }
+
+        .player-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-md);
+            background: var(--accent-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .player-name { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+        .player-status {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .player-status.online { background: rgba(34,197,94,0.12); color: var(--status-online); }
+        .player-status.offline { background: rgba(148,163,184,0.12); color: var(--text-muted); }
+        .player-subtitle { font-size: 13px; color: var(--text-secondary); }
+        .player-gm-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background: rgba(59,130,196,0.12);
+            color: var(--accent);
+        }
+
+        .player-stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-light);
+        }
+        .player-stat {
+            flex: 1;
+            min-width: 100px;
+            padding: 0 12px;
+            border-right: 1px solid var(--border-light);
+        }
+        .player-stat:last-child { border-right: none; }
+        .player-stat:first-child { padding-left: 0; }
+        .player-stat-label {
+            font-size: 10.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+        .player-stat-value {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .pa-btn, .pa-tele {
+            font-size: 12.5px !important;
+            padding: 6px 12px !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/js/players.js" asp-append-version="true"></script>
+}

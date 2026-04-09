@@ -1,0 +1,191 @@
+/* ============================================================
+   MangosSuperUI — Help System Styles
+   ============================================================ */
+
+/* --- Toggle Button --- */
+
+#btnToggleHelp {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border-light);
+    background: var(--bg-card);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+
+    #btnToggleHelp:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--accent-subtle);
+    }
+
+    #btnToggleHelp.help-active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+        box-shadow: 0 0 0 3px var(--accent-light);
+    }
+
+/* --- Hoverable buttons when help is active --- */
+
+body.help-mode .cmd-quick,
+body.help-mode .pa-btn,
+body.help-mode .pa-tele {
+    position: relative;
+    border-bottom-style: dotted;
+}
+
+/* --- Tooltip --- */
+
+.help-tip {
+    position: fixed;
+    z-index: 9999;
+    max-width: 340px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: #fff;
+    background: #1e2530;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+    .help-tip.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .help-tip::before {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: 16px;
+        width: 10px;
+        height: 10px;
+        background: #1e2530;
+        transform: rotate(45deg);
+    }
+
+.help-tip-cmd {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--accent-light);
+    display: block;
+    margin-bottom: 3px;
+}
+
+.help-tip-desc {
+    color: #c8d0da;
+}
+
+/* --- Section Help Panel (top of each tab) --- */
+
+.help-section-panel {
+    display: none;
+    background: linear-gradient(135deg, #f0f6ff, var(--accent-subtle));
+    border: 1px solid var(--accent-light);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+    overflow: hidden;
+    animation: helpSlideIn 0.25s ease;
+}
+
+    .help-section-panel.help-visible {
+        display: block;
+    }
+
+.help-section-header {
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(59, 130, 196, 0.06);
+    border-bottom: 1px solid var(--accent-light);
+    letter-spacing: 0.02em;
+}
+
+    .help-section-header i {
+        margin-right: 6px;
+    }
+
+.help-section-body {
+    padding: 8px 14px;
+    max-height: 240px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px;
+}
+
+.help-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(59, 130, 196, 0.06);
+}
+
+    .help-entry:last-child {
+        border-bottom: none;
+    }
+
+.help-cmd {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(59, 130, 196, 0.08);
+    padding: 1px 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.help-desc {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.35;
+}
+
+/* --- Animations --- */
+
+@keyframes helpSlideIn {
+    from {
+        opacity: 0;
+        max-height: 0;
+        margin-bottom: 0;
+    }
+
+    to {
+        opacity: 1;
+        max-height: 400px;
+        margin-bottom: 20px;
+    }
+}
+
+/* --- Scrollbar --- */
+
+.help-section-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.help-section-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.help-section-body::-webkit-scrollbar-thumb {
+    background: var(--accent-light);
+    border-radius: 2px;
+}

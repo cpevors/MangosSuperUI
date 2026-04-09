@@ -1,0 +1,874 @@
+@{
+    ViewData["Title"] = "Console";
+}
+
+<div class="app-shell">
+    <partial name="_Sidebar" />
+
+    <div class="main-content">
+        <div class="content-header">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h1>Console</h1>
+                    <p>Server management and Remote Access commands</p>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <button id="btnToggleHelp" onclick="HelpSystem.toggle()" title="Show command help">
+                        <i class="fa-solid fa-circle-question"></i>
+                    </button>
+                    <span class="status-dot offline" id="consoleStatus"></span>
+                    <span id="consoleStatusText" style="font-weight: 500; font-size: 13px;">Connecting...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body" style="display: flex; flex-direction: column; overflow: hidden;">
+            <!-- Tab Navigation -->
+            <div class="console-tabs" id="consoleTabs">
+                <button class="console-tab active" data-tab="server"><i class="fa-solid fa-server"></i> Server</button>
+                <button class="console-tab" data-tab="accounts"><i class="fa-solid fa-id-badge"></i> Accounts</button>
+                <button class="console-tab" data-tab="players"><i class="fa-solid fa-users"></i> Players</button>
+                <button class="console-tab" data-tab="bans"><i class="fa-solid fa-ban"></i> Bans</button>
+                <button class="console-tab" data-tab="world"><i class="fa-solid fa-globe"></i> World</button>
+                <button class="console-tab" data-tab="bots"><i class="fa-solid fa-robot"></i> Bots</button>
+                <button class="console-tab" data-tab="lookup"><i class="fa-solid fa-magnifying-glass"></i> Lookup</button>
+                <button class="console-tab" data-tab="guild"><i class="fa-solid fa-people-group"></i> Guild</button>
+                <button class="console-tab" data-tab="teleport"><i class="fa-solid fa-location-dot"></i> Teleport</button>
+                <button class="console-tab" data-tab="chat"><i class="fa-solid fa-comment-dots"></i> Chat</button>
+                <button class="console-tab" data-tab="more"><i class="fa-solid fa-ellipsis"></i> More</button>
+                <button class="console-tab" data-tab="terminal"><i class="fa-solid fa-terminal"></i> Terminal</button>
+            </div>
+
+            <!-- Tab Content Container -->
+            <div class="console-content">
+
+                <!-- ==================== SERVER ==================== -->
+                <div class="console-panel active" id="panel-server">
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Quick Actions</div>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button class="btn-accent cmd-quick" data-cmd=".server info"><i class="fa-solid fa-circle-info"></i> Server Info</button>
+                            <button class="btn-accent cmd-quick" data-cmd=".saveall"><i class="fa-solid fa-floppy-disk"></i> Save All</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".server motd"><i class="fa-solid fa-bullhorn"></i> Show MOTD</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".server plimit"><i class="fa-solid fa-user-group"></i> Player Limit</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".server corpses"><i class="fa-solid fa-skull"></i> Remove Corpses</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".server resetallraids"><i class="fa-solid fa-dungeon"></i> Reset All Raids</button>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Shutdown / Restart</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="cmd-card">
+                                    <div class="cmd-card-title"><i class="fa-solid fa-power-off"></i> Shutdown Server</div>
+                                    <div class="cmd-row">
+                                        <label class="cmd-label">Delay (seconds)</label>
+                                        <input type="number" class="form-input cmd-param" id="shutdownDelay" value="30" min="0" style="width: 120px;" />
+                                    </div>
+                                    <div class="d-flex gap-2 mt-2">
+                                        <button class="btn-accent cmd-build" data-build="shutdown">Shutdown</button>
+                                        <button class="btn-outline-subtle cmd-quick" data-cmd=".server shutdown cancel">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="cmd-card">
+                                    <div class="cmd-card-title"><i class="fa-solid fa-rotate"></i> Restart Server</div>
+                                    <div class="cmd-row">
+                                        <label class="cmd-label">Delay (seconds)</label>
+                                        <input type="number" class="form-input cmd-param" id="restartDelay" value="30" min="0" style="width: 120px;" />
+                                    </div>
+                                    <div class="d-flex gap-2 mt-2">
+                                        <button class="btn-accent cmd-build" data-build="restart">Restart</button>
+                                        <button class="btn-outline-subtle cmd-quick" data-cmd=".server restart cancel">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Announce</div>
+                        <div class="cmd-card">
+                            <div class="cmd-row">
+                                <label class="cmd-label">Message</label>
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-input cmd-param flex-grow-1" id="announceMsg" placeholder="Server restarting in 5 minutes..." />
+                                    <button class="btn-accent cmd-build" data-build="announce">Announce</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="notify">Notify</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Set MOTD</div>
+                        <div class="cmd-card">
+                            <div class="cmd-row">
+                                <label class="cmd-label">Message of the Day</label>
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-input cmd-param flex-grow-1" id="motdMsg" placeholder="Welcome to Barrens Chat!" />
+                                    <button class="btn-accent cmd-build" data-build="setmotd">Set MOTD</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== ACCOUNTS ==================== -->
+                <div class="console-panel" id="panel-accounts">
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Quick Actions</div>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button class="btn-accent cmd-quick" data-cmd=".account onlinelist"><i class="fa-solid fa-users"></i> Online Accounts</button>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Create Account</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Username</label>
+                                    <input type="text" class="form-input cmd-param" id="accCreateName" placeholder="playername" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Password</label>
+                                    <input type="text" class="form-input cmd-param" id="accCreatePass" placeholder="password" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn-accent cmd-build" data-build="accCreate">Create Account</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Set GM Level</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Account Name</label>
+                                    <input type="text" class="form-input cmd-param" id="accGmName" placeholder="playername" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Level (0-6)</label>
+                                    <select class="form-input cmd-param" id="accGmLevel">
+                                        <option value="0">0 — Player</option>
+                                        <option value="1">1 — Moderator</option>
+                                        <option value="2">2 — Ticket Master</option>
+                                        <option value="3">3 — Game Master</option>
+                                        <option value="4">4 — Basic Admin</option>
+                                        <option value="5">5 — Developer</option>
+                                        <option value="6">6 — Administrator</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn-accent cmd-build" data-build="accGmLevel">Set GM Level</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Set Password</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Account Name</label>
+                                    <input type="text" class="form-input cmd-param" id="accPassName" placeholder="playername" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">New Password</label>
+                                    <input type="text" class="form-input cmd-param" id="accPassNew" placeholder="newpassword" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn-accent cmd-build" data-build="accSetPass">Set Password</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Account Info</div>
+                        <div class="cmd-card">
+                            <div class="d-flex gap-2">
+                                <input type="text" class="form-input cmd-param flex-grow-1" id="accCharName" placeholder="Account name or ID" />
+                                <button class="btn-accent cmd-build" data-build="accChars">List Characters</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== PLAYERS ==================== -->
+                <div class="console-panel" id="panel-players">
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Player Actions</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="cmd-label">Player Name</label>
+                                    <input type="text" class="form-input cmd-param" id="playerName" placeholder="Playername" />
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end flex-wrap gap-2">
+                                    <button class="btn-accent cmd-build" data-build="pinfo">Info</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="kick">Kick</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="revivePlayer">Revive</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="repairPlayer">Repair Items</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="charRename">Force Rename</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Character Level</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Player Name</label>
+                                    <input type="text" class="form-input cmd-param" id="levelPlayerName" placeholder="Playername" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Level</label>
+                                    <input type="number" class="form-input cmd-param" id="levelValue" value="60" min="1" max="60" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn-accent cmd-build" data-build="charLevel">Set Level</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Send Items / Gold / Mail</div>
+                        <div class="cmd-card">
+                            <div class="row g-3 mb-2">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Player Name</label>
+                                    <input type="text" class="form-input cmd-param" id="sendTarget" placeholder="Playername" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Subject</label>
+                                    <input type="text" class="form-input cmd-param" id="sendSubject" placeholder="GM Gift" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Message</label>
+                                    <input type="text" class="form-input cmd-param" id="sendBody" placeholder="Enjoy!" />
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Gold Amount (copper)</label>
+                                    <input type="number" class="form-input cmd-param" id="sendGold" placeholder="10000" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Item ID:Count</label>
+                                    <input type="text" class="form-input cmd-param" id="sendItem" placeholder="19019:1" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end flex-wrap gap-2">
+                                    <button class="btn-accent cmd-build" data-build="sendMoney">Send Gold</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="sendItems">Send Items</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="sendMail">Send Mail</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Mute / Unmute</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Player Name</label>
+                                    <input type="text" class="form-input cmd-param" id="muteName" placeholder="Playername" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Minutes (for mute)</label>
+                                    <input type="number" class="form-input cmd-param" id="muteMinutes" value="30" min="1" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end gap-2">
+                                    <button class="btn-accent cmd-build" data-build="mute">Mute</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="unmute">Unmute</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Reset</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Player Name</label>
+                                    <input type="text" class="form-input cmd-param" id="resetPlayerName" placeholder="Playername" />
+                                </div>
+                                <div class="col-md-8 d-flex align-items-end flex-wrap gap-2">
+                                    <button class="btn-outline-subtle cmd-build" data-build="resetTalents">Talents</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="resetLevel">Level</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="resetSpells">Spells</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="resetItems">Items</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="resetAll">All</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== BANS ==================== -->
+                <div class="console-panel" id="panel-bans">
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Ban</div>
+                        <div class="cmd-card">
+                            <div class="row g-3 mb-2">
+                                <div class="col-md-3">
+                                    <label class="cmd-label">Type</label>
+                                    <select class="form-input cmd-param" id="banType">
+                                        <option value="account">Account</option>
+                                        <option value="character">Character</option>
+                                        <option value="ip">IP</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="cmd-label">Name / IP</label>
+                                    <input type="text" class="form-input cmd-param" id="banTarget" placeholder="name or IP" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="cmd-label">Duration (-1 = perma)</label>
+                                    <input type="text" class="form-input cmd-param" id="banDuration" placeholder="-1" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="cmd-label">Reason</label>
+                                    <input type="text" class="form-input cmd-param" id="banReason" placeholder="Cheating" />
+                                </div>
+                            </div>
+                            <button class="btn-accent cmd-build" data-build="ban">Ban</button>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Unban</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="cmd-label">Type</label>
+                                    <select class="form-input cmd-param" id="unbanType">
+                                        <option value="account">Account</option>
+                                        <option value="character">Character</option>
+                                        <option value="ip">IP</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="cmd-label">Name / IP</label>
+                                    <input type="text" class="form-input cmd-param" id="unbanTarget" placeholder="name or IP" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn-accent cmd-build" data-build="unban">Unban</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Ban Lists</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".banlist account"><i class="fa-solid fa-list"></i> Account Bans</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".banlist character"><i class="fa-solid fa-list"></i> Character Bans</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".banlist ip"><i class="fa-solid fa-list"></i> IP Bans</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== WORLD ==================== -->
+                <div class="console-panel" id="panel-world">
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Events</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="cmd-label">Event ID</label>
+                                    <input type="number" class="form-input cmd-param" id="eventId" placeholder="1" />
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end gap-2">
+                                    <button class="btn-accent cmd-build" data-build="eventStart">Start</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="eventStop">Stop</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Reload</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn-accent cmd-quick" data-cmd=".reload config"><i class="fa-solid fa-gear"></i> Config</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".reload all">All</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".reload all_quest">Quests</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".reload all_loot">Loot</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".reload all_npc">NPCs</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".reload all_spell">Spells</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".reload all_gossips">Gossips</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".reload all_item">Items</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".reload creature_template">Creature Tpl</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".reload item_template">Item Tpl</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".reload quest_template">Quest Tpl</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".reload npc_vendor">Vendors</button>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Tickets</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn-accent cmd-quick" data-cmd=".ticket list"><i class="fa-solid fa-ticket"></i> Open</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".ticket onlinelist">Online</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".ticket escalatedlist">Escalated</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".ticket closedlist">Closed</button>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">War Effort</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn-accent cmd-quick" data-cmd=".wareffort info"><i class="fa-solid fa-shield"></i> Info</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== BOTS ==================== -->
+                <div class="console-panel" id="panel-bots">
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Player Bots</div>
+                        <div class="cmd-card">
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <button class="btn-accent cmd-quick" data-cmd=".bot info"><i class="fa-solid fa-circle-info"></i> Bot Info</button>
+                                <button class="btn-outline-subtle cmd-quick" data-cmd=".bot start"><i class="fa-solid fa-play"></i> Start</button>
+                                <button class="btn-outline-subtle cmd-quick" data-cmd=".bot stop"><i class="fa-solid fa-stop"></i> Stop</button>
+                                <button class="btn-outline-subtle cmd-quick" data-cmd=".bot reload"><i class="fa-solid fa-arrows-rotate"></i> Reload</button>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Bot Count or Name</label>
+                                    <input type="text" class="form-input cmd-param" id="botAddParam" placeholder="10" />
+                                </div>
+                                <div class="col-md-8 d-flex align-items-end gap-2">
+                                    <button class="btn-accent cmd-build" data-build="botAdd">Add</button>
+                                    <button class="btn-outline-subtle cmd-quick" data-cmd=".bot add_all">Add All</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="botDelete">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">AH Bot</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn-accent cmd-quick" data-cmd=".ahbot reload"><i class="fa-solid fa-arrows-rotate"></i> Reload</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".ahbot update">Update</button>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Battle Bots</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".battlebot add warsong">WSG</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".battlebot add arathi">AB</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".battlebot add alterac">AV</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".battlebot removeall"><i class="fa-solid fa-xmark"></i> Remove All</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== LOOKUP ==================== -->
+                <div class="console-panel" id="panel-lookup">
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Search</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="cmd-label">Type</label>
+                                    <select class="form-input cmd-param" id="lookupType">
+                                        <option value="item">Item</option>
+                                        <option value="creature">Creature</option>
+                                        <option value="quest">Quest</option>
+                                        <option value="spell">Spell</option>
+                                        <option value="object">Game Object</option>
+                                        <option value="itemset">Item Set</option>
+                                        <option value="skill">Skill</option>
+                                        <option value="event">Event</option>
+                                        <option value="tele">Teleport</option>
+                                        <option value="faction">Faction</option>
+                                        <option value="taxinode">Taxi Node</option>
+                                        <option value="area">Area</option>
+                                        <option value="guild">Guild</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="cmd-label">Search Term</label>
+                                    <input type="text" class="form-input cmd-param" id="lookupTerm" placeholder="Thunderfury" />
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button class="btn-accent cmd-build" data-build="lookup">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Player Lookup</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="cmd-label">Search By</label>
+                                    <select class="form-input cmd-param" id="playerLookupType">
+                                        <option value="ip">IP Address</option>
+                                        <option value="account">Account</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="cmd-label">Value</label>
+                                    <input type="text" class="form-input cmd-param" id="playerLookupTerm" placeholder="192.168.0.100" />
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button class="btn-accent cmd-build" data-build="lookupPlayer">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Spell Info</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="cmd-label">Spell ID</label>
+                                    <input type="number" class="form-input cmd-param" id="spellInfoId" placeholder="12345" />
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end gap-2">
+                                    <button class="btn-accent cmd-build" data-build="spellInfo">Info</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="spellEffects">Effects</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== GUILD ==================== -->
+                <div class="console-panel" id="panel-guild">
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Guild Management</div>
+                        <div class="cmd-card">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Guild Name</label>
+                                    <input type="text" class="form-input cmd-param" id="guildName" placeholder="My Guild" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Leader Character Name</label>
+                                    <input type="text" class="form-input cmd-param" id="guildLeader" placeholder="Playername" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end gap-2">
+                                    <button class="btn-accent cmd-build" data-build="guildCreate">Create</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="guildDelete">Delete</button>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Character Name (invite/uninvite/rank)</label>
+                                    <input type="text" class="form-input cmd-param" id="guildMember" placeholder="Playername" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Rank # (for rank change)</label>
+                                    <input type="number" class="form-input cmd-param" id="guildRank" value="0" min="0" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end gap-2">
+                                    <button class="btn-accent cmd-build" data-build="guildInvite">Invite</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="guildUninvite">Uninvite</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="guildRankSet">Set Rank</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Guild Rename</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Old Guild Name</label>
+                                    <input type="text" class="form-input cmd-param" id="guildOldName" placeholder="Old Name" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">New Guild Name</label>
+                                    <input type="text" class="form-input cmd-param" id="guildNewName" placeholder="New Name" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn-accent cmd-build" data-build="guildRename">Rename</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== TELEPORT ==================== -->
+                <div class="console-panel" id="panel-teleport">
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Teleport Player</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Player Name</label>
+                                    <input type="text" class="form-input cmd-param" id="telePlayer" placeholder="Playername" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Location Name</label>
+                                    <input type="text" class="form-input cmd-param" id="teleLocation" placeholder="Use lookup tele to find" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn-accent cmd-build" data-build="teleName">Teleport</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Manage Teleport Locations</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="cmd-label">Location Name (to delete)</label>
+                                    <input type="text" class="form-input cmd-param" id="teleDelName" placeholder="customlocation" />
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <button class="btn-outline-subtle cmd-build" data-build="teleDel">Delete Location</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Search Teleport Locations</div>
+                        <div class="cmd-card">
+                            <div class="d-flex gap-2">
+                                <input type="text" class="form-input cmd-param flex-grow-1" id="teleLookup" placeholder="stormwind" />
+                                <button class="btn-accent cmd-build" data-build="lookupTele">Search</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== CHAT ==================== -->
+                <div class="console-panel" id="panel-chat">
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Antispam</div>
+                        <div class="cmd-card">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-8">
+                                    <label class="cmd-label">Word/Phrase</label>
+                                    <input type="text" class="form-input cmd-param" id="antispamWord" placeholder="gold selling spam phrase" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end gap-2">
+                                    <button class="btn-accent cmd-build" data-build="antispamAdd">Add</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="antispamRemove">Remove</button>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Replace From</label>
+                                    <input type="text" class="form-input cmd-param" id="antispamFrom" placeholder="badword" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Replace To</label>
+                                    <input type="text" class="form-input cmd-param" id="antispamTo" placeholder="****" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end gap-2">
+                                    <button class="btn-accent cmd-build" data-build="antispamReplace">Add Replace</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="antispamRemoveReplace">Del Replace</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Spammer Management</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="cmd-label">Player Name</label>
+                                    <input type="text" class="form-input cmd-param" id="spamerName" placeholder="Playername" />
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end gap-2">
+                                    <button class="btn-accent cmd-build" data-build="spamerMute">Mute Spammer</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="spamerUnmute">Unmute</button>
+                                    <button class="btn-outline-subtle cmd-quick" data-cmd=".spamer list">List</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">GM Visibility</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".gm ingame"><i class="fa-solid fa-eye"></i> GM Ingame List</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".gm list"><i class="fa-solid fa-list"></i> GM List</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== MORE ==================== -->
+                <div class="console-panel" id="panel-more">
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Gold</div>
+                        <div class="cmd-card">
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn-outline-subtle cmd-quick" data-cmd=".gold"><i class="fa-solid fa-coins"></i> Gold Info</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Character Dump (pdump)</div>
+                        <div class="cmd-card">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Filename</label>
+                                    <input type="text" class="form-input cmd-param" id="pdumpFile" placeholder="dump_nico.txt" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Character Name / GUID</label>
+                                    <input type="text" class="form-input cmd-param" id="pdumpChar" placeholder="Nico or #1" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end gap-2">
+                                    <button class="btn-accent cmd-build" data-build="pdumpWrite">Export</button>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Filename (to import)</label>
+                                    <input type="text" class="form-input cmd-param" id="pdumpLoadFile" placeholder="dump_nico.txt" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Account Name</label>
+                                    <input type="text" class="form-input cmd-param" id="pdumpLoadAcct" placeholder="accountname" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn-accent cmd-build" data-build="pdumpLoad">Import</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Instance</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".instance stats"><i class="fa-solid fa-chart-bar"></i> Instance Stats</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".instance continents"><i class="fa-solid fa-map"></i> Continent Info</button>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Pet Management</div>
+                        <div class="cmd-card">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Pet Name / ID</label>
+                                    <input type="text" class="form-input cmd-param" id="petParam" placeholder="name or ID" />
+                                </div>
+                                <div class="col-md-8 d-flex align-items-end gap-2">
+                                    <button class="btn-outline-subtle cmd-build" data-build="petList">List Pets</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="petRename">Rename</button>
+                                    <button class="btn-outline-subtle cmd-build" data-build="petDelete">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Mass Send</div>
+                        <div class="cmd-card">
+                            <div class="row g-3 mb-2">
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Subject</label>
+                                    <input type="text" class="form-input cmd-param" id="massSubject" placeholder="Server Notice" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Message</label>
+                                    <input type="text" class="form-input cmd-param" id="massBody" placeholder="Hello everyone!" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="cmd-label">Gold (copper) or Item ID:Count</label>
+                                    <input type="text" class="form-input cmd-param" id="massValue" placeholder="10000 or 19019:1" />
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn-accent cmd-build" data-build="massMail">Mass Mail</button>
+                                <button class="btn-outline-subtle cmd-build" data-build="massMoney">Mass Money</button>
+                                <button class="btn-outline-subtle cmd-build" data-build="massItems">Mass Items</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cmd-section">
+                        <div class="cmd-section-title">Misc</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".list maps"><i class="fa-solid fa-map"></i> List Maps</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".variable"><i class="fa-solid fa-sliders"></i> Variables</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".log"><i class="fa-solid fa-file-lines"></i> Log Level</button>
+                            <button class="btn-outline-subtle cmd-quick" data-cmd=".pbcast stats"><i class="fa-solid fa-broadcast-tower"></i> PBCast Stats</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== TERMINAL ==================== -->
+                <div class="console-panel" id="panel-terminal">
+                    <div class="console-terminal" id="consoleTerminal">
+                        <div id="terminalOutput"></div>
+                    </div>
+                    <div style="flex-shrink: 0; margin-top: 8px;">
+                        <div class="d-flex gap-2">
+                            <span class="console-prompt">mangos&gt;</span>
+                            <input type="text"
+                                   class="console-input flex-grow-1"
+                                   id="terminalInput"
+                                   placeholder="Type a command..."
+                                   autocomplete="off"
+                                   spellcheck="false" />
+                            <button class="btn-accent" id="btnSendTerminal"><i class="fa-solid fa-paper-plane"></i></button>
+                            <button class="btn-outline-subtle" id="btnClearTerminal"><i class="fa-solid fa-eraser"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Response Output (visible on all tabs except terminal) -->
+            <div class="cmd-response-bar" id="responseBar">
+                <div class="d-flex align-items-center justify-content-between mb-1" style="flex-shrink: 0;">
+                    <span style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted);">Response</span>
+                    <button class="btn-outline-subtle" id="btnClearResponse" style="padding: 2px 8px; font-size: 11px;">Clear</button>
+                </div>
+                <div class="console-output" id="cmdOutput" style="flex: 1; min-height: 80px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .console-tabs {
+            display: flex;
+            gap: 2px;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 0;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        .console-tab {
+            padding: 8px 14px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+        }
+        .console-tab:hover { color: var(--text-primary); background: var(--bg-card-alt); }
+        .console-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .console-tab i { margin-right: 5px; }
+        .console-content { flex: 1; overflow-y: auto; min-height: 0; }
+        .console-panel { display: none; padding: 16px 0; }
+        .console-panel.active { display: flex; flex-direction: column; }
+        #panel-terminal.active { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .cmd-section { margin-bottom: 20px; }
+        .cmd-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px; }
+        .cmd-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 16px; }
+        .cmd-card-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+        .cmd-card-title i { color: var(--accent); margin-right: 6px; }
+        .cmd-row { margin-bottom: 4px; }
+        .cmd-label { font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: block; }
+        .cmd-quick { font-size: 12.5px !important; padding: 6px 12px !important; }
+        .cmd-response-bar { flex-shrink: 0; margin-top: 8px; display: flex; flex-direction: column; max-height: 200px; }
+        .console-terminal { flex: 1; font-family: 'Consolas','Courier New',monospace; font-size: 12.5px; line-height: 1.6; background: #0f1319; color: #c8d0da; padding: 16px; border-radius: var(--radius-md); overflow-y: auto; white-space: pre-wrap; word-break: break-all; min-height: 0; }
+        .console-prompt { font-family: 'Consolas','Courier New',monospace; font-size: 13px; color: var(--accent); font-weight: 600; padding: 10px 0 10px 4px; white-space: nowrap; user-select: none; }
+        .line-cmd { color: #7aa2f7; }
+        .line-ok { color: #c8d0da; }
+        .line-err { color: #f7768e; }
+        .line-sys { color: #9ece6a; }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/js/console.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,204 @@
+@{
+    ViewData["Title"] = "Instance Loot";
+}
+
+<div class="app-shell">
+    <partial name="_Sidebar" />
+
+    <div class="main-content">
+        <div class="content-header">
+            <div>
+                <h1><i class="fa-solid fa-dungeon" style="color: var(--accent);"></i> Instance Loot</h1>
+                <p>Browse and tune drop rates per dungeon, boss, and item</p>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <!-- Baseline Warning Banner -->
+            <div id="baselineWarning"></div>
+
+            <div class="row">
+                <!-- Instance List -->
+                <div class="col-lg-3" id="colInstances">
+                    <div class="card" style="position: sticky; top: 16px;">
+                        <div class="card-header">
+                            <i class="fa-solid fa-map" style="color: var(--accent);"></i> Instances
+                        </div>
+                        <div class="card-body p-0 inst-list-body" id="instanceListContainer">
+                            <div class="text-center p-3"><i class="fa-solid fa-spinner fa-spin"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boss / Creature List -->
+                <div class="col-lg-3" id="colBosses">
+                    <div class="card" style="position: sticky; top: 16px;">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span id="bossListTitle"><i class="fa-solid fa-skull" style="color: var(--accent);"></i> Bosses</span>
+                            <label class="filter-check-inline" style="font-size: 11px;">
+                                <input type="checkbox" id="chkShowTrash" />
+                                <span>Trash</span>
+                            </label>
+                        </div>
+                        <div class="card-body p-0 boss-list-body" id="bossListContainer">
+                            <div class="text-center p-3 text-muted" style="font-size: 13px;">Select an instance</div>
+                        </div>
+                        <!-- Per-instance multiplier + reset -->
+                        <div class="card-footer instance-mult-footer" id="instanceMultFooter" style="display: none;">
+                            <div class="d-flex align-items-center gap-2">
+                                <span style="font-size: 11px; color: var(--text-muted); white-space: nowrap;">All bosses:</span>
+                                <div class="d-flex gap-1 flex-wrap flex-1">
+                                    <button class="mult-mini" data-mult="1.5">1.5×</button>
+                                    <button class="mult-mini" data-mult="2">2×</button>
+                                    <button class="mult-mini" data-mult="3">3×</button>
+                                    <button class="mult-mini" data-mult="5">5×</button>
+                                </div>
+                                <button class="btn-reset-og" id="btnResetInstanceOG" style="display:none;" title="Reset all loot in this instance to original">
+                                    <i class="fa-solid fa-rotate-left"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loot Table -->
+                <div class="col-lg-6" id="colLoot">
+                    <div class="card" style="position: sticky; top: 16px;">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span id="lootTitle"><i class="fa-solid fa-scroll" style="color: var(--accent);"></i> Loot Table</span>
+                            <div id="lootActions" style="display: none;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span style="font-size: 11px; color: var(--text-muted);">This boss:</span>
+                                    <button class="mult-mini" data-bossmult="1.5">1.5×</button>
+                                    <button class="mult-mini" data-bossmult="2">2×</button>
+                                    <button class="mult-mini" data-bossmult="3">3×</button>
+                                    <button class="mult-mini" data-bossmult="5">5×</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- OG Loot Changelog Panel -->
+                        <div class="changelog-panel" id="lootChangelogPanel" style="display:none;">
+                            <div class="changelog-header" id="lootChangelogToggle">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Changes from Original
+                                <span class="changelog-count-badge clean" id="lootChangeCount">0</span>
+                                <i class="fa-solid fa-chevron-down chevron"></i>
+                            </div>
+                            <div class="changelog-body" id="lootChangelogBody">
+                                <div id="lootChangelogContent"></div>
+                            </div>
+                        </div>
+
+                        <!-- OG Reset Boss Loot Button -->
+                        <div id="lootResetContainer" style="display:none; padding: 6px 14px; border-bottom: 1px solid var(--border-light);">
+                            <button class="btn-reset-og" id="btnResetBossLootOG">
+                                <i class="fa-solid fa-rotate-left"></i> Reset Boss Loot
+                            </button>
+                        </div>
+
+                        <div class="card-body p-0 loot-panel-body" id="lootContainer">
+                            <div class="text-center p-4 text-muted" style="font-size: 13px;">
+                                <i class="fa-solid fa-scroll" style="font-size: 24px; margin-bottom: 8px; display: block; color: var(--border);"></i>
+                                Select a boss to view their loot table
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Confirmation Modal (shared by baseline system) -->
+<div class="modal fade" id="resetConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <div class="modal-header" style="border-color: var(--status-warning); background: rgba(255,170,0,0.06);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600; color: var(--status-warning);">
+                    <i class="fa-solid fa-rotate-left"></i> <span id="resetModalTitle">Reset to Original</span>
+                </h5>
+            </div>
+            <div class="modal-body" style="font-size: 13.5px;">
+                <p id="resetModalBody">Are you sure you want to reset this to its original baseline values?</p>
+                <p class="text-muted" style="font-size: 12px; margin-bottom: 0;">
+                    <i class="fa-solid fa-circle-info" style="font-size: 10px;"></i>
+                    This restores the original database values from before any MangosSuperUI edits. The action is logged.
+                </p>
+            </div>
+            <div class="modal-footer" style="border-color: var(--border-light); gap: 8px;">
+                <button class="btn-sm btn-outline-warning" id="btnConfirmReset">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button class="btn-sm btn-outline-subtle" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .quality-0 { color: #9d9d9d; } .quality-1 { color: var(--text-primary); }
+        .quality-2 { color: #1eff00; } .quality-3 { color: #0070dd; }
+        .quality-4 { color: #a335ee; } .quality-5 { color: #ff8000; }
+        .quality-6 { color: #e6cc80; }
+        .inst-list-body { max-height: calc(100vh - 160px); overflow-y: auto; }
+        .inst-category-header { padding: 8px 14px 4px; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); background: var(--bg-input); }
+        .inst-row { display: flex; align-items: center; gap: 8px; padding: 8px 14px; cursor: pointer; border-bottom: 1px solid var(--border-light); transition: background 0.12s; }
+        .inst-row:hover { background: var(--bg-input); }
+        .inst-row.active { background: var(--accent-subtle); border-left: 3px solid var(--accent); }
+        .inst-row:last-child { border-bottom: none; }
+        .inst-name { font-size: 12.5px; font-weight: 500; flex: 1; }
+        .inst-meta { font-size: 10px; color: var(--text-muted); }
+        .inst-badge { font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 8px; background: var(--bg-body); color: var(--text-muted); }
+        .boss-list-body { max-height: calc(100vh - 210px); overflow-y: auto; }
+        .boss-row { display: flex; align-items: center; gap: 8px; padding: 8px 14px; cursor: pointer; border-bottom: 1px solid var(--border-light); transition: background 0.12s; }
+        .boss-row:hover { background: var(--bg-input); }
+        .boss-row.active { background: var(--accent-subtle); border-left: 3px solid var(--accent); }
+        .boss-row:last-child { border-bottom: none; }
+        .boss-rank-icon { font-size: 11px; width: 18px; text-align: center; flex-shrink: 0; }
+        .boss-rank-3 { color: var(--status-warning); }
+        .boss-rank-2 { color: #a335ee; }
+        .boss-rank-1 { color: var(--text-muted); }
+        .boss-rank-0 { color: var(--text-muted); opacity: 0.5; }
+        .boss-info { flex: 1; min-width: 0; }
+        .boss-name { font-size: 12.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .boss-level { font-size: 10px; color: var(--text-muted); }
+        .boss-loot-count { font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 8px; background: var(--bg-body); color: var(--text-muted); flex-shrink: 0; }
+        .instance-mult-footer { border-top: 1px solid var(--border-light); padding: 8px 12px; }
+        .mult-mini { padding: 3px 8px; font-size: 11px; font-weight: 700; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-secondary); cursor: pointer; transition: all 0.12s; }
+        .mult-mini:hover { border-color: var(--accent); color: var(--accent); }
+        .filter-check-inline { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+        .filter-check-inline input { accent-color: var(--accent); }
+        .loot-panel-body { max-height: calc(100vh - 160px); overflow-y: auto; }
+        .loot-section-header { padding: 8px 14px; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; background: var(--bg-input); border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; }
+        .ref-tag { font-size: 9px; padding: 1px 6px; border-radius: 8px; background: rgba(99,153,255,0.1); color: var(--accent); font-weight: 600; }
+        .loot-item-row { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-bottom: 1px solid var(--border-light); font-size: 12.5px; transition: background 0.12s; }
+        .loot-item-row:hover { background: rgba(99,153,255,0.03); }
+        .loot-item-row:last-child { border-bottom: none; }
+        .loot-item-icon { width: 26px; height: 26px; image-rendering: pixelated; border-radius: 2px; border: 1px solid var(--border); flex-shrink: 0; }
+        .loot-item-name { flex: 1; min-width: 0; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .loot-edit-field { width: 58px; text-align: right; padding: 3px 6px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 3px; color: var(--text-primary); font-size: 12px; font-family: monospace; transition: border-color 0.12s; }
+        .loot-edit-field:focus { border-color: var(--accent); outline: none; }
+        .loot-edit-field.changed { border-color: var(--status-warning); background: rgba(255,170,0,0.06); }
+        .loot-field-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; text-align: center; display: block; margin-bottom: 1px; }
+        .loot-field-group { text-align: center; flex-shrink: 0; }
+        .loot-save-btn { background: var(--accent); border: none; color: white; border-radius: 3px; padding: 3px 8px; font-size: 10px; font-weight: 700; cursor: pointer; opacity: 0; transition: opacity 0.15s; flex-shrink: 0; }
+        .loot-item-row.dirty .loot-save-btn { opacity: 1; }
+        .loot-quest-badge { font-size: 8px; padding: 0 4px; border-radius: 4px; background: rgba(99,153,255,0.12); color: var(--accent); font-weight: 700; vertical-align: middle; margin-left: 4px; }
+        .loot-count-field { width: 36px; text-align: center; }
+        .loot-count-sep { color: var(--text-muted); font-size: 11px; }
+        .loot-fields { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
+        .loot-field-unit { font-size: 10px; color: var(--text-muted); margin-right: 4px; }
+        .loot-chance-wrap { position: relative; }
+        .loot-effective-hint { position: absolute; bottom: -13px; left: 0; right: 0; text-align: right; font-size: 9px; color: var(--text-muted); white-space: nowrap; }
+        .loot-group-badge { font-size: 8px; padding: 0 4px; border-radius: 4px; background: rgba(255,170,0,0.12); color: var(--status-warning); font-weight: 700; vertical-align: middle; margin-left: 4px; }
+        .inst-toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; padding: 12px 20px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; animation: toastIn 0.3s ease-out; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .inst-toast.success { background: var(--status-online); color: white; }
+        .inst-toast.error { background: var(--status-error); color: white; }
+        @@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/js/instances.js" asp-append-version="true"></script>
+}

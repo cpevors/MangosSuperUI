@@ -1,0 +1,450 @@
+@{
+    ViewData["Title"] = "Loot Tuner";
+}
+
+<div class="app-shell">
+    <partial name="_Sidebar" />
+
+    <div class="main-content">
+        <div class="content-header">
+            <div>
+                <h1><i class="fa-solid fa-sliders" style="color: var(--accent);"></i> Loot Tuner</h1>
+                <p>Bulk-adjust drop rates across the world database</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn-sm btn-outline-subtle" id="btnViewChangelog">
+                    <i class="fa-solid fa-clock-rotate-left"></i> View Changes
+                </button>
+                <button class="btn-sm btn-outline-subtle" id="btnResetBaseline" style="border-color: var(--status-warning); color: var(--status-warning);">
+                    <i class="fa-solid fa-rotate-left"></i> Reset All to Original
+                </button>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <!-- Baseline Warning Banner -->
+            <div id="baselineWarning"></div>
+
+            <!-- Quick Presets -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-bolt" style="color: var(--accent);"></i> Quick Presets
+                </div>
+                <div class="card-body">
+                    <div class="preset-grid">
+                        <button class="preset-btn" data-preset="blues3x">
+                            <span class="preset-icon quality-3"><i class="fa-solid fa-gem"></i></span>
+                            <span class="preset-label">Rare (Blue) 3×</span>
+                        </button>
+                        <button class="preset-btn" data-preset="epics5x">
+                            <span class="preset-icon quality-4"><i class="fa-solid fa-gem"></i></span>
+                            <span class="preset-label">Epic (Purple) 5×</span>
+                        </button>
+                        <button class="preset-btn" data-preset="bossloot2x">
+                            <span class="preset-icon" style="color: var(--status-warning);"><i class="fa-solid fa-skull-crossbones"></i></span>
+                            <span class="preset-label">Boss Drops 2×</span>
+                        </button>
+                        <button class="preset-btn" data-preset="dungeon3x">
+                            <span class="preset-icon" style="color: var(--accent);"><i class="fa-solid fa-dungeon"></i></span>
+                            <span class="preset-label">All Dungeons 3×</span>
+                        </button>
+                        <button class="preset-btn" data-preset="consumables2x">
+                            <span class="preset-icon" style="color: var(--status-online);"><i class="fa-solid fa-flask"></i></span>
+                            <span class="preset-label">Consumables 2×</span>
+                        </button>
+                        <button class="preset-btn" data-preset="endgame3x">
+                            <span class="preset-icon" style="color: #ff8000;"><i class="fa-solid fa-arrow-up-9-1"></i></span>
+                            <span class="preset-label">Endgame (55-60) 3×</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Filter Builder -->
+                <div class="col-lg-5">
+                    <div class="card" style="position: sticky; top: 16px;">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span><i class="fa-solid fa-filter" style="color: var(--accent);"></i> Filters</span>
+                            <button class="btn-sm btn-outline-subtle" id="btnResetFilters" title="Reset all filters">
+                                <i class="fa-solid fa-rotate-left"></i> Reset
+                            </button>
+                        </div>
+                        <div class="card-body filter-body">
+
+                            <!-- Loot Source -->
+                            <div class="filter-group">
+                                <div class="filter-label">Loot Source</div>
+                                <div class="chip-row" id="sourceChips">
+                                    <button class="filter-chip source-chip active" data-value="">
+                                        <i class="fa-solid fa-layer-group"></i> Creature + Chest
+                                    </button>
+                                    <button class="filter-chip source-chip" data-value="creature">
+                                        <i class="fa-solid fa-dragon"></i> Creatures
+                                    </button>
+                                    <button class="filter-chip source-chip" data-value="gameobject">
+                                        <i class="fa-solid fa-box-open"></i> Chests
+                                    </button>
+                                    <button class="filter-chip source-chip" data-value="fishing">
+                                        <i class="fa-solid fa-fish"></i> Fishing
+                                    </button>
+                                    <button class="filter-chip source-chip" data-value="skinning">
+                                        <i class="fa-solid fa-scissors"></i> Skinning
+                                    </button>
+                                    <button class="filter-chip source-chip" data-value="all">
+                                        <i class="fa-solid fa-globe"></i> Everything
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Quality -->
+                            <div class="filter-group">
+                                <div class="filter-label">Item Quality</div>
+                                <div class="chip-row">
+                                    <button class="filter-chip toggle-chip" data-quality="0">
+                                        <span class="quality-dot" style="background:#9d9d9d;"></span> Poor
+                                    </button>
+                                    <button class="filter-chip toggle-chip" data-quality="1">
+                                        <span class="quality-dot" style="background:#ffffff;"></span> Common
+                                    </button>
+                                    <button class="filter-chip toggle-chip" data-quality="2">
+                                        <span class="quality-dot" style="background:#1eff00;"></span> Uncommon
+                                    </button>
+                                    <button class="filter-chip toggle-chip active" data-quality="3">
+                                        <span class="quality-dot" style="background:#0070dd;"></span> Rare
+                                    </button>
+                                    <button class="filter-chip toggle-chip active" data-quality="4">
+                                        <span class="quality-dot" style="background:#a335ee;"></span> Epic
+                                    </button>
+                                    <button class="filter-chip toggle-chip" data-quality="5">
+                                        <span class="quality-dot" style="background:#ff8000;"></span> Legendary
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Item Class -->
+                            <div class="filter-group">
+                                <div class="filter-label">Item Type <span class="filter-optional">optional</span></div>
+                                <div class="chip-row">
+                                    <button class="filter-chip toggle-chip" data-itemclass="2"><i class="fa-solid fa-khanda"></i> Weapon</button>
+                                    <button class="filter-chip toggle-chip" data-itemclass="4"><i class="fa-solid fa-shield-halved"></i> Armor</button>
+                                    <button class="filter-chip toggle-chip" data-itemclass="0"><i class="fa-solid fa-flask"></i> Consumable</button>
+                                    <button class="filter-chip toggle-chip" data-itemclass="9"><i class="fa-solid fa-scroll"></i> Recipe</button>
+                                    <button class="filter-chip toggle-chip" data-itemclass="7"><i class="fa-solid fa-cubes"></i> Trade Goods</button>
+                                    <button class="filter-chip toggle-chip" data-itemclass="12"><i class="fa-solid fa-circle-question"></i> Quest</button>
+                                    <button class="filter-chip toggle-chip" data-itemclass="15"><i class="fa-solid fa-ellipsis"></i> Misc</button>
+                                </div>
+                            </div>
+
+                            <!-- Creature Rank -->
+                            <div class="filter-group creature-filter" id="filterRankGroup">
+                                <div class="filter-label">Creature Rank <span class="filter-optional">optional</span></div>
+                                <div class="chip-row">
+                                    <button class="filter-chip toggle-chip" data-rank="0">Normal</button>
+                                    <button class="filter-chip toggle-chip" data-rank="1"><i class="fa-solid fa-star" style="font-size:9px;"></i> Elite</button>
+                                    <button class="filter-chip toggle-chip" data-rank="2"><i class="fa-solid fa-star" style="font-size:9px;"></i> Rare Elite</button>
+                                    <button class="filter-chip toggle-chip" data-rank="3"><i class="fa-solid fa-skull"></i> Boss</button>
+                                    <button class="filter-chip toggle-chip" data-rank="4"><i class="fa-solid fa-diamond" style="font-size:9px;"></i> Rare</button>
+                                </div>
+                            </div>
+
+                            <!-- Dungeon / Raid Picker -->
+                            <div class="filter-group creature-filter" id="filterMapGroup">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <div class="filter-label" style="margin-bottom:0;">Dungeon / Raid <span class="filter-optional">optional</span></div>
+                                    <div class="d-flex gap-1">
+                                        <button class="btn-micro" id="btnSelectAllDungeons">All Dungeons</button>
+                                        <button class="btn-micro" id="btnSelectAllRaids">All Raids</button>
+                                        <button class="btn-micro" id="btnClearMaps">Clear</button>
+                                    </div>
+                                </div>
+                                <div class="instance-picker" id="instancePicker">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+
+                            <!-- Level Range -->
+                            <div class="filter-group">
+                                <div class="filter-label">Required Level <span class="filter-optional">optional</span></div>
+                                <div class="level-range-row">
+                                    <input type="number" class="form-input level-input" id="filterLevelMin" placeholder="1" min="1" max="60" />
+                                    <span class="range-dash">—</span>
+                                    <input type="number" class="form-input level-input" id="filterLevelMax" placeholder="60" min="1" max="60" />
+                                </div>
+                            </div>
+
+                            <!-- Drop Chance Range -->
+                            <div class="filter-group">
+                                <div class="filter-label">Current Drop % <span class="filter-optional">optional</span></div>
+                                <div class="level-range-row">
+                                    <input type="number" class="form-input level-input" id="filterChanceMin" placeholder="0" min="0" max="100" step="0.1" />
+                                    <span class="range-dash">—</span>
+                                    <input type="number" class="form-input level-input" id="filterChanceMax" placeholder="100" min="0" max="100" step="0.1" />
+                                </div>
+                            </div>
+
+                            <!-- Include guaranteed -->
+                            <div class="filter-group">
+                                <label class="filter-check-inline">
+                                    <input type="checkbox" id="filterIncludeGuaranteed" />
+                                    <span>Include 100% guaranteed drops</span>
+                                </label>
+                            </div>
+
+                            <!-- Preview Button -->
+                            <button class="btn-accent w-100 mt-2" id="btnPreview">
+                                <i class="fa-solid fa-magnifying-glass"></i> Preview Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview & Apply -->
+                <div class="col-lg-7">
+                    <!-- Multiplier -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="filter-label" style="margin-bottom: 8px;">Multiplier</div>
+                            <div class="mult-row">
+                                <div class="mult-presets">
+                                    <button class="mult-btn" data-mult="0.25">÷4</button>
+                                    <button class="mult-btn" data-mult="0.5">÷2</button>
+                                    <button class="mult-btn" data-mult="1.5">1.5×</button>
+                                    <button class="mult-btn active" data-mult="2">2×</button>
+                                    <button class="mult-btn" data-mult="3">3×</button>
+                                    <button class="mult-btn" data-mult="5">5×</button>
+                                    <button class="mult-btn" data-mult="10">10×</button>
+                                </div>
+                                <div class="mult-custom">
+                                    <input type="number" class="form-input" id="multiplierValue" value="2" min="0.01" max="100" step="0.1" />
+                                    <span class="mult-x">×</span>
+                                </div>
+                            </div>
+                            <div class="mult-slider-row">
+                                <input type="range" class="mult-slider" id="multiplierSlider" min="0.1" max="10" step="0.1" value="2" />
+                                <div class="d-flex justify-content-between" style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">
+                                    <span>0.1×</span><span>1× (no change)</span><span>10×</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary + Apply -->
+                    <div class="card mb-3" id="summaryCard" style="display: none;">
+                        <div class="card-body">
+                            <div class="summary-row">
+                                <div class="summary-stat">
+                                    <div class="summary-value" id="sumEntries">0</div>
+                                    <div class="summary-label">Loot Entries</div>
+                                </div>
+                                <div class="summary-stat">
+                                    <div class="summary-value" id="sumItems">0</div>
+                                    <div class="summary-label">Unique Items</div>
+                                </div>
+                                <div class="summary-stat">
+                                    <div class="summary-value" id="sumSources">0</div>
+                                    <div class="summary-label">Sources</div>
+                                </div>
+                            </div>
+                            <div id="tableBreakdown" class="mt-2"></div>
+                            <div id="truncateWarning" class="mt-2" style="display:none; font-size: 12px; color: var(--status-warning);">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Showing first 500 rows — all matching entries will be updated on apply.
+                            </div>
+                            <button class="btn-apply-main" id="btnApply">
+                                <i class="fa-solid fa-bolt"></i>
+                                <span>Apply <strong id="applyMultLabel">2×</strong> to <strong id="applyCountLabel">0</strong> entries</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Results Table -->
+                    <div class="card">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span><i class="fa-solid fa-table-list" style="color: var(--accent);"></i> Preview</span>
+                            <span class="text-muted" style="font-size: 12px;" id="previewInfo">Set filters and click Preview</span>
+                        </div>
+                        <div class="card-body p-0" id="previewContainer">
+                            <div class="text-center p-4 text-muted">
+                                <i class="fa-solid fa-sliders" style="font-size: 28px; margin-bottom: 10px; display: block; color: var(--border);"></i>
+                                Configure filters, then <strong>Preview Changes</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Apply Confirmation Modal -->
+<div class="modal fade" id="applyConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <div class="modal-header" style="border-color: var(--status-warning); background: rgba(255,170,0,0.08);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600; color: var(--status-warning);">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Confirm Loot Changes
+                </h5>
+            </div>
+            <div class="modal-body" style="font-size: 13.5px;">
+                <p>You are about to apply a <strong id="confirmMult"></strong> multiplier to <strong id="confirmCount"></strong> loot entries.</p>
+                <p>This modifies drop rates in the live database. All changes are logged in the Activity Log.</p>
+                <p class="text-muted" style="font-size: 12px;">To undo, apply a <strong id="confirmInverse"></strong> multiplier with the same filters.</p>
+            </div>
+            <div class="modal-footer" style="border-color: var(--border-light); gap: 8px;">
+                <button class="btn-sm btn-accent" id="btnConfirmApply">
+                    <i class="fa-solid fa-bolt"></i> Apply Changes
+                </button>
+                <button class="btn-sm btn-outline-subtle" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset to Baseline Confirmation Modal -->
+<div class="modal fade" id="resetBaselineModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <div class="modal-header" style="border-color: var(--status-warning); background: rgba(255,170,0,0.08);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600; color: var(--status-warning);">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Reset All Loot to Original
+                </h5>
+            </div>
+            <div class="modal-body" style="font-size: 13.5px;">
+                <p>This will <strong>replace all loot tables</strong> with the original baseline values captured at initialization.</p>
+                <p>Every drop-rate change you've made via Loot Tuner will be reverted.</p>
+                <p class="text-muted" style="font-size: 12px;">This action is logged but <strong>not reversible</strong> — you would need to re-apply any tuning manually.</p>
+            </div>
+            <div class="modal-footer" style="border-color: var(--border-light); gap: 8px;">
+                <button class="btn-sm" id="btnConfirmReset" style="background: var(--status-warning); border: none; color: #000; font-weight: 600; border-radius: var(--radius-sm); padding: 6px 16px; cursor: pointer;">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Everything
+                </button>
+                <button class="btn-sm btn-outline-subtle" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Changelog Modal -->
+<div class="modal fade" id="changelogModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <div class="modal-header" style="border-color: var(--border-light);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600;">
+                    <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent);"></i> Loot Changes vs. Original
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="font-size: 10px;"></button>
+            </div>
+            <div class="modal-body" style="padding: 16px;" id="changelogBody">
+                <div class="text-center p-4">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Loading changelog...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .quality-0 { color: #9d9d9d; } .quality-1 { color: var(--text-primary); }
+        .quality-2 { color: #1eff00; } .quality-3 { color: #0070dd; }
+        .quality-4 { color: #a335ee; } .quality-5 { color: #ff8000; }
+        .quality-6 { color: #e6cc80; }
+
+        .preset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 8px; }
+        .preset-btn { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-primary); cursor: pointer; font-size: 12.5px; font-weight: 500; transition: all var(--transition-fast); }
+        .preset-btn:hover { border-color: var(--accent); background: var(--accent-subtle); }
+        .preset-icon { font-size: 16px; flex-shrink: 0; }
+
+        .filter-body { max-height: calc(100vh - 200px); overflow-y: auto; }
+        .filter-group { margin-bottom: 16px; }
+        .filter-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .filter-optional { font-weight: 400; text-transform: none; color: var(--text-muted); opacity: 0.6; font-size: 10px; margin-left: 4px; }
+
+        .chip-row { display: flex; flex-wrap: wrap; gap: 5px; }
+        .filter-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; background: var(--bg-body); border: 1px solid var(--border); border-radius: 20px; color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.15s ease; user-select: none; }
+        .filter-chip:hover { border-color: var(--accent); color: var(--text-primary); background: rgba(99,153,255,0.06); }
+        .filter-chip.active { border-color: var(--accent); color: white; background: var(--accent); }
+        .filter-chip i { font-size: 10px; }
+        .quality-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,0.15); flex-shrink: 0; }
+        .filter-chip.active .quality-dot { border-color: rgba(255,255,255,0.4); }
+
+        .creature-filter { max-height: 0; overflow: hidden; opacity: 0; margin-bottom: 0; transition: max-height 0.3s ease, opacity 0.25s ease, margin 0.3s ease; }
+        .creature-filter.visible { max-height: 500px; opacity: 1; margin-bottom: 16px; }
+
+        .instance-picker { max-height: 200px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 8px; }
+        .instance-category { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 8px; margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px solid var(--border-light); }
+        .instance-category:first-child { margin-top: 0; }
+        .instance-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; margin: 2px; background: var(--bg-body); border: 1px solid var(--border); border-radius: 14px; color: var(--text-secondary); cursor: pointer; font-size: 11px; font-weight: 500; transition: all 0.15s ease; }
+        .instance-chip:hover { border-color: var(--accent); color: var(--text-primary); }
+        .instance-chip.active { border-color: var(--accent); color: white; background: var(--accent); }
+        .instance-chip .inst-level { font-size: 9px; opacity: 0.6; font-weight: 400; }
+        .instance-chip.active .inst-level { opacity: 0.8; }
+        .btn-micro { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 10px; font-weight: 600; padding: 0 4px; }
+        .btn-micro:hover { opacity: 0.7; }
+
+        .level-range-row { display: flex; align-items: center; gap: 8px; }
+        .level-input { width: 75px !important; text-align: center; }
+        .range-dash { color: var(--text-muted); font-size: 14px; }
+        .filter-check-inline { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+        .filter-check-inline input { accent-color: var(--accent); }
+
+        .mult-row { display: flex; align-items: center; gap: 12px; }
+        .mult-presets { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
+        .mult-btn { padding: 6px 11px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.15s ease; }
+        .mult-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .mult-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+        .mult-custom { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .mult-custom input { width: 65px !important; text-align: center; font-weight: 700; font-size: 15px !important; }
+        .mult-x { font-size: 16px; font-weight: 700; color: var(--text-muted); }
+        .mult-slider-row { margin-top: 10px; }
+        .mult-slider { width: 100%; height: 6px; -webkit-appearance: none; appearance: none; background: var(--border); border-radius: 3px; outline: none; }
+        .mult-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 2px solid var(--bg-card); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+
+        .summary-row { display: flex; gap: 16px; justify-content: space-around; text-align: center; }
+        .summary-stat { flex: 1; }
+        .summary-value { font-size: 24px; font-weight: 700; color: var(--accent); }
+        .summary-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+        #tableBreakdown { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+        .breakdown-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: var(--bg-input); border-radius: 10px; font-size: 11px; color: var(--text-muted); }
+        .breakdown-tag strong { color: var(--text-primary); }
+        .btn-apply-main { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 14px; padding: 12px; background: var(--accent); border: none; border-radius: var(--radius-md); color: white; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.15s ease; }
+        .btn-apply-main:hover { opacity: 0.9; }
+
+        #previewContainer { max-height: 500px; overflow-y: auto; }
+        .loot-table { width: 100%; font-size: 12.5px; border-collapse: collapse; }
+        .loot-table th { padding: 8px 10px; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid var(--border); background: var(--bg-input); position: sticky; top: 0; z-index: 1; }
+        .loot-table td { padding: 5px 10px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+        .loot-table tr:last-child td { border-bottom: none; }
+        .loot-table tr:hover td { background: rgba(99,153,255,0.04); }
+        .item-cell { display: flex; align-items: center; gap: 6px; }
+        .item-cell img { width: 22px; height: 22px; image-rendering: pixelated; border-radius: 2px; border: 1px solid var(--border); }
+        .chance-col { text-align: right; font-family: monospace; font-size: 12px; }
+        .chance-arrow { color: var(--text-muted); font-size: 9px; text-align: center; }
+        .chance-new { font-weight: 700; }
+        .chance-new.increased { color: var(--status-online); }
+        .chance-new.decreased { color: var(--status-error); }
+        .chance-new.capped { color: var(--status-warning); }
+        .source-cell { font-size: 11px; color: var(--text-muted); max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .table-tag { font-size: 9px; padding: 1px 6px; border-radius: 8px; background: var(--bg-input); color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.3px; }
+
+        .loot-toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; padding: 12px 20px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; animation: toastIn 0.3s ease-out; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .loot-toast.success { background: var(--status-online); color: white; }
+        .loot-toast.error { background: var(--status-error); color: white; }
+        @@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ── Changelog Modal ── */
+        .changelog-summary { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
+        .changelog-count { font-size: 28px; font-weight: 700; color: var(--accent); line-height: 1; }
+        .changelog-count-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+        .changelog-breakdown { display: flex; flex-wrap: wrap; gap: 5px; }
+        #changelogTableBody { max-height: 400px; overflow-y: auto; }
+        .delta-up { color: var(--status-online); font-weight: 600; }
+        .delta-down { color: var(--status-error); font-weight: 600; }
+        .changelog-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .changelog-empty i { font-size: 32px; margin-bottom: 10px; display: block; color: var(--border); }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/js/loottuner.js" asp-append-version="true"></script>
+}

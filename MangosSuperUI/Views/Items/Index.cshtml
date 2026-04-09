@@ -1,0 +1,371 @@
+@{
+    ViewData["Title"] = "Items";
+}
+
+<div class="app-shell">
+    <partial name="_Sidebar" />
+
+    <div class="main-content">
+        <div class="content-header">
+            <div>
+                <h1>Items</h1>
+                <p>Browse all <span id="totalItemCount">—</span> items in the world database</p>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <!-- Baseline Warning Banner -->
+            <div id="baselineWarning"></div>
+
+            <!-- Search & Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="cmd-label">Search by name or entry ID</label>
+                            <input type="text" class="form-input" id="itemSearch" placeholder="e.g. Thunderfury or 19019" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="cmd-label">Class</label>
+                            <select class="form-input" id="filterClass">
+                                <option value="">All</option>
+                                <option value="0">Consumable</option>
+                                <option value="1">Container</option>
+                                <option value="2">Weapon</option>
+                                <option value="4">Armor</option>
+                                <option value="5">Reagent</option>
+                                <option value="7">Trade Goods</option>
+                                <option value="9">Recipe</option>
+                                <option value="12">Quest</option>
+                                <option value="15">Miscellaneous</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="cmd-label">Quality</label>
+                            <select class="form-input" id="filterQuality">
+                                <option value="">All</option>
+                                <option value="0">Poor</option>
+                                <option value="1">Common</option>
+                                <option value="2">Uncommon</option>
+                                <option value="3">Rare</option>
+                                <option value="4">Epic</option>
+                                <option value="5">Legendary</option>
+                                <option value="6">Artifact</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="cmd-label">Slot</label>
+                            <select class="form-input" id="filterSlot">
+                                <option value="">All</option>
+                                <option value="1">Head</option>
+                                <option value="2">Neck</option>
+                                <option value="3">Shoulder</option>
+                                <option value="5">Chest</option>
+                                <option value="6">Waist</option>
+                                <option value="7">Legs</option>
+                                <option value="8">Feet</option>
+                                <option value="9">Wrist</option>
+                                <option value="10">Hands</option>
+                                <option value="11">Finger</option>
+                                <option value="12">Trinket</option>
+                                <option value="13">One-Hand</option>
+                                <option value="14">Shield</option>
+                                <option value="15">Ranged</option>
+                                <option value="16">Back</option>
+                                <option value="17">Two-Hand</option>
+                                <option value="21">Main Hand</option>
+                                <option value="22">Off Hand</option>
+                                <option value="23">Held In Off-Hand</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn-accent w-100" id="btnSearchItems">
+                                <i class="fa-solid fa-magnifying-glass"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="row" id="mainLayout">
+                <!-- Item List -->
+                <div class="col-lg-7" id="colList">
+                    <div class="card">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span><i class="fa-solid fa-box-open" style="color: var(--accent);"></i> Results</span>
+                            <span class="text-muted" style="font-size: 12px;" id="resultInfo"></span>
+                        </div>
+                        <div class="card-body p-0" id="itemListContainer">
+                            <div class="text-center p-4 text-muted">Search to browse items</div>
+                        </div>
+                        <!-- Pagination -->
+                        <div class="card-footer d-flex align-items-center justify-content-between" id="paginationBar" style="display: none !important;">
+                            <button class="btn-outline-subtle btn-sm" id="btnPrevPage"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+                            <span style="font-size: 12.5px; color: var(--text-secondary);" id="pageInfo"></span>
+                            <button class="btn-outline-subtle btn-sm" id="btnNextPage">Next <i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detail Panel -->
+                <div class="col-lg-5" id="colDetail">
+                    <div class="card" id="detailPanel" style="position: sticky; top: 16px;">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span><i class="fa-solid fa-circle-info" style="color: var(--accent);"></i> Item Detail</span>
+                            <div id="detailActions" style="display: none;">
+                                <button class="btn-sm btn-accent" id="btnCloneItem" title="Clone to custom item">
+                                    <i class="fa-solid fa-clone"></i> Clone
+                                </button>
+                                <button class="btn-sm btn-outline-subtle" id="btnEditOriginal" title="Edit this item directly">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body" id="detailContent">
+                            <div class="text-center text-muted p-3">Click an item to view details</div>
+                        </div>
+
+                        <!-- OG Changelog Panel -->
+                        <div class="changelog-panel" id="itemChangelogPanel" style="display:none;">
+                            <div class="changelog-header" id="itemChangelogToggle">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Changes from Original
+                                <span class="changelog-count-badge clean" id="itemChangeCount">0</span>
+                                <i class="fa-solid fa-chevron-down chevron"></i>
+                            </div>
+                            <div class="changelog-body" id="itemChangelogBody">
+                                <div id="itemChangelogContent"></div>
+                            </div>
+                        </div>
+
+                        <!-- OG Reset Button -->
+                        <div id="itemResetContainer" style="display:none; padding: 8px 14px; border-top: 1px solid var(--border-light);">
+                            <button class="btn-reset-og" id="btnResetItemOG">
+                                <i class="fa-solid fa-rotate-left"></i> Reset to Original
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Slide-Over Panel (hidden by default) -->
+                <div class="col-lg-5 edit-panel-col" id="colEdit" style="display: none;">
+                    <div class="card edit-panel" id="editPanel" style="position: sticky; top: 16px;">
+                        <!-- Sticky header -->
+                        <div class="card-header edit-panel-header" id="editHeader">
+                            <div class="d-flex align-items-center gap-2" style="flex: 1; min-width: 0;">
+                                <img id="editHeaderIcon" class="detail-icon" style="width: 36px; height: 36px;" src="/icons/inv_misc_questionmark.png" />
+                                <div style="min-width: 0;">
+                                    <div id="editHeaderName" style="font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">New Item</div>
+                                    <span class="edit-badge" id="editBadge">CUSTOM</span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 flex-shrink-0">
+                                <button class="btn-sm btn-accent" id="btnSaveItem"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                                <button class="btn-sm btn-outline-subtle" id="btnCancelEdit"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                            </div>
+                        </div>
+                        <!-- Base game warning bar -->
+                        <div class="edit-warning-bar" id="editWarningBar" style="display: none;">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Editing base game item — changes affect all references</span>
+                            <label class="edit-safety-toggle">
+                                <input type="checkbox" id="chkBaseGameAck" checked disabled />
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <!-- Scrollable form body -->
+                        <div class="card-body edit-panel-body" id="editFormContainer">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Icon Picker Modal -->
+<div class="modal fade" id="iconPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <div class="modal-header" style="border-color: var(--border-light);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600;">
+                    <i class="fa-solid fa-icons" style="color: var(--accent);"></i> Choose Icon
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-input" id="iconPickerSearch" placeholder="Search icons (e.g. sword, fire, helm)" />
+                </div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted" style="font-size: 12px;" id="iconPickerInfo"></span>
+                    <div class="d-flex gap-2">
+                        <button class="btn-sm btn-outline-subtle" id="btnIconPrevPage"><i class="fa-solid fa-chevron-left"></i></button>
+                        <span class="text-muted" style="font-size: 12px; line-height: 28px;" id="iconPickerPageInfo"></span>
+                        <button class="btn-sm btn-outline-subtle" id="btnIconNextPage"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="icon-picker-grid" id="iconPickerGrid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Original Confirmation Modal -->
+<div class="modal fade" id="editOriginalModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <div class="modal-header" style="border-color: var(--status-warning); background: rgba(255,170,0,0.08);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600; color: var(--status-warning);">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Edit Base Game Item
+                </h5>
+            </div>
+            <div class="modal-body" style="font-size: 13.5px;">
+                <p>You're about to modify <strong id="confirmItemName"></strong> <span class="text-muted" id="confirmItemEntry"></span>.</p>
+                <p>Changes take effect immediately and affect <strong>all players and NPCs</strong> that reference this item. This action is logged.</p>
+            </div>
+            <div class="modal-footer" style="border-color: var(--border-light); gap: 8px;">
+                <button class="btn-sm btn-accent" id="btnConfirmCloneInstead">
+                    <i class="fa-solid fa-clone"></i> Clone Instead
+                </button>
+                <button class="btn-sm btn-outline-warning" id="btnConfirmEditOriginal">
+                    <i class="fa-solid fa-pen"></i> Edit Original
+                </button>
+                <button class="btn-sm btn-outline-subtle" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Confirmation Modal (shared by baseline system) -->
+<div class="modal fade" id="resetConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <div class="modal-header" style="border-color: var(--status-warning); background: rgba(255,170,0,0.06);">
+                <h5 class="modal-title" style="font-size: 15px; font-weight: 600; color: var(--status-warning);">
+                    <i class="fa-solid fa-rotate-left"></i> <span id="resetModalTitle">Reset to Original</span>
+                </h5>
+            </div>
+            <div class="modal-body" style="font-size: 13.5px;">
+                <p id="resetModalBody">Are you sure you want to reset this to its original baseline values?</p>
+                <p class="text-muted" style="font-size: 12px; margin-bottom: 0;">
+                    <i class="fa-solid fa-circle-info" style="font-size: 10px;"></i>
+                    This restores the original database values from before any MangosSuperUI edits. The action is logged.
+                </p>
+            </div>
+            <div class="modal-footer" style="border-color: var(--border-light); gap: 8px;">
+                <button class="btn-sm btn-outline-warning" id="btnConfirmReset">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button class="btn-sm btn-outline-subtle" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* ── All existing styles unchanged — just pasted as-is ── */
+        .item-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: background var(--transition-fast); }
+        .item-row:hover { background: var(--bg-input); }
+        .item-row.active { background: var(--accent-subtle); border-left: 3px solid var(--accent); }
+        .item-row:last-child { border-bottom: none; }
+        .item-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border); flex-shrink: 0; image-rendering: pixelated; }
+        .item-name { font-size: 13px; font-weight: 500; line-height: 1.3; }
+        .item-meta { font-size: 11px; color: var(--text-muted); }
+        .item-entry { font-size: 10px; color: var(--text-muted); font-family: monospace; }
+        .quality-0 { color: #9d9d9d; } .quality-1 { color: var(--text-primary); } .quality-2 { color: #1eff00; } .quality-3 { color: #0070dd; } .quality-4 { color: #a335ee; } .quality-5 { color: #ff8000; } .quality-6 { color: #e6cc80; }
+        .detail-icon { width: 48px; height: 48px; border-radius: var(--radius-sm); border: 2px solid var(--border); image-rendering: pixelated; }
+        .detail-icon-lg { width: 56px; height: 56px; border-radius: var(--radius-sm); border: 2px solid var(--border); image-rendering: pixelated; cursor: pointer; transition: border-color var(--transition-fast), transform 0.15s; flex-shrink: 0; }
+        .detail-icon-lg:hover { border-color: var(--accent); transform: scale(1.06); }
+        .item-detail-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light); }
+        .detail-section { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border-light); }
+        .detail-section-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .detail-row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 2px 0; }
+        .detail-row .label { color: var(--text-secondary); }
+        .detail-row .value { color: var(--text-primary); font-weight: 500; }
+        .stat-line { font-size: 12.5px; color: #1eff00; }
+        .spell-line { font-size: 12px; color: var(--accent-light); }
+        .edit-panel-col { animation: slideIn 0.25s ease-out; }
+        @@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .edit-panel { border-color: var(--accent); }
+        .edit-panel.base-game-mode { border-color: var(--status-warning); }
+        .edit-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 2; }
+        .edit-panel-body { max-height: calc(100vh - 140px); overflow-y: auto; }
+        .edit-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 1px 7px; border-radius: 3px; background: rgba(0,200,100,0.15); color: #00c864; }
+        .edit-badge.base-game { background: rgba(255,170,0,0.15); color: var(--status-warning); }
+        .edit-warning-bar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 12px; font-weight: 500; color: var(--status-warning); background: rgba(255,170,0,0.06); border-bottom: 1px solid rgba(255,170,0,0.2); }
+        .edit-warning-bar span { flex: 1; }
+        .edit-safety-toggle { position: relative; width: 32px; height: 18px; flex-shrink: 0; }
+        .edit-safety-toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; inset: 0; border-radius: 9px; background: var(--status-warning); transition: 0.2s; cursor: default; }
+        .toggle-slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 2px; top: 2px; border-radius: 50%; background: white; transition: 0.2s; transform: translateX(14px); }
+        .edit-section { margin-bottom: 12px; border: 1px solid var(--border-light); border-radius: var(--radius-md); overflow: hidden; }
+        .edit-section-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg-input); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-primary); user-select: none; transition: background var(--transition-fast); }
+        .edit-section-header:hover { background: var(--border-light); }
+        .edit-section-header .chevron { margin-left: auto; transition: transform 0.2s; font-size: 11px; color: var(--text-muted); }
+        .edit-section-header.collapsed .chevron { transform: rotate(-90deg); }
+        .edit-section-body { padding: 14px; }
+        .edit-section-body.collapsed { display: none; }
+        .edit-field { margin-bottom: 12px; }
+        .edit-field:last-child { margin-bottom: 0; }
+        .edit-field label { display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .edit-field input, .edit-field select, .edit-field textarea { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); padding: 6px 10px; font-size: 13px; transition: border-color var(--transition-fast); }
+        .edit-field input:focus, .edit-field select:focus, .edit-field textarea:focus { border-color: var(--accent); outline: none; }
+        .edit-field textarea { resize: vertical; min-height: 60px; }
+        .edit-field-inline { display: flex; gap: 10px; align-items: flex-end; }
+        .edit-field-inline .edit-field { flex: 1; margin-bottom: 0; }
+        .quality-option-0 { color: #9d9d9d; } .quality-option-1 { color: inherit; } .quality-option-2 { color: #1eff00; } .quality-option-3 { color: #0070dd; } .quality-option-4 { color: #a335ee; } .quality-option-5 { color: #ff8000; } .quality-option-6 { color: #e6cc80; }
+        .stat-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+        .stat-row select { flex: 2; } .stat-row input { flex: 1; }
+        .stat-row .btn-remove-stat { flex-shrink: 0; background: none; border: none; color: var(--status-error); cursor: pointer; font-size: 13px; padding: 4px; }
+        .btn-add-row { background: none; border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--text-muted); cursor: pointer; padding: 6px 12px; font-size: 12px; width: 100%; text-align: center; transition: all var(--transition-fast); }
+        .btn-add-row:hover { border-color: var(--accent); color: var(--accent); }
+        .spell-slot-card { border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px; background: var(--bg-body); }
+        .spell-slot-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+        .spell-name-preview { font-size: 11px; color: var(--accent-light); font-style: italic; margin-top: 3px; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        .checkbox-grid label { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 400; color: var(--text-primary); text-transform: none; letter-spacing: 0; cursor: pointer; padding: 3px 6px; border-radius: var(--radius-sm); transition: background var(--transition-fast); }
+        .checkbox-grid label:hover { background: var(--bg-input); }
+        .checkbox-grid input[type="checkbox"] { accent-color: var(--accent); }
+        .price-inputs { display: flex; gap: 6px; align-items: center; }
+        .price-inputs .price-part { display: flex; align-items: center; gap: 3px; flex: 1; }
+        .price-inputs input { width: 60px; text-align: right; }
+        .price-inputs .coin-label { font-size: 11px; font-weight: 600; }
+        .coin-gold { color: #ffd700; } .coin-silver { color: #c0c0c0; } .coin-copper { color: #b87333; }
+        .icon-picker-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-input); transition: border-color var(--transition-fast); }
+        .icon-picker-trigger:hover { border-color: var(--accent); }
+        .icon-picker-trigger img { width: 40px; height: 40px; image-rendering: pixelated; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+        .icon-picker-trigger .change-text { font-size: 12px; color: var(--accent); }
+        .icon-picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 4px; }
+        .icon-picker-cell { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid transparent; border-radius: var(--radius-sm); transition: all var(--transition-fast); }
+        .icon-picker-cell:hover { border-color: var(--accent); background: var(--accent-subtle); }
+        .icon-picker-cell.selected { border-color: var(--accent); background: var(--accent-subtle); }
+        .icon-picker-cell img { width: 40px; height: 40px; image-rendering: pixelated; }
+        .btn-outline-warning { background: none; border: 1px solid var(--status-warning); color: var(--status-warning); border-radius: var(--radius-sm); padding: 4px 12px; font-size: 12.5px; cursor: pointer; transition: all var(--transition-fast); }
+        .btn-outline-warning:hover { background: rgba(255,170,0,0.12); }
+        .edit-toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; padding: 12px 20px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; animation: toastIn 0.3s ease-out; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .edit-toast.success { background: var(--status-online); color: white; }
+        .edit-toast.error { background: var(--status-error); color: white; }
+        @@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ── 3D Model Preview ── */
+        .model-preview-container { width: 100%; height: 200px; background: var(--bg-input); border-radius: var(--radius-sm); border: 1px solid var(--border); overflow: hidden; margin-bottom: 12px; }
+        .model-preview-container model-viewer { width: 100%; height: 100%; }
+
+        /* ── Loot field units (used in Instance Loot, included here for shared pattern) ── */
+        .loot-fields { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
+        .loot-field-unit { font-size: 10px; color: var(--text-muted); margin-right: 4px; }
+        .loot-chance-wrap { position: relative; }
+        .loot-effective-hint { position: absolute; bottom: -13px; left: 0; right: 0; text-align: right; font-size: 9px; color: var(--text-muted); white-space: nowrap; }
+        .loot-group-badge { font-size: 8px; padding: 0 4px; border-radius: 4px; background: rgba(255,170,0,0.12); color: var(--status-warning); font-weight: 700; vertical-align: middle; margin-left: 4px; }
+    </style>
+}
+
+@section Scripts {
+    <script type="module" src="~/lib/model-viewer.min.js"></script>
+    <script src="~/js/items.js" asp-append-version="true"></script>
+}

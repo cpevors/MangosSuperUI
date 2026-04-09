@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MangosSuperUI</title>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Fontawesome Icons -->
+    <link rel="stylesheet" href="~/css/fontawesome/all.min.css" />
+    <!-- Site CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <!-- Theme Overrides (populated by site.js from localStorage) -->
+    <style id="theme-overrides"></style>
+    <!-- Baseline CSS -->
+    <link rel="stylesheet" href="~/css/baseline.css" asp-append-version="true" />
+    <!-- Help System CSS -->
+    <link rel="stylesheet" href="~/css/help.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    @RenderBody()
+    <!-- jQuery -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SignalR -->
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <!-- Help System -->
+    <script src="~/js/help.js" asp-append-version="true"></script>
+    <!-- Site JS (sidebar + theme + reorder) -->
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- Baseline  -->
+    <script src="~/js/baseline.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

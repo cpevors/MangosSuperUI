@@ -1,0 +1,324 @@
+/* MangosSuperUI — OG Baseline System Styles */
+
+/* ── Warning Banner ── */
+.baseline-warning {
+    display: flex;
+    gap: 14px;
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.08), rgba(255, 152, 0, 0.03));
+    border: 1px solid rgba(255, 152, 0, 0.3);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+}
+
+.baseline-warning-icon {
+    font-size: 22px;
+    color: var(--status-warning);
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+.baseline-warning-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--status-warning);
+    margin-bottom: 4px;
+}
+
+.baseline-warning-text {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.baseline-init-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--status-warning);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.baseline-init-btn:hover {
+    background: #e68900;
+}
+
+.baseline-init-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* ── Progress ── */
+.baseline-progress-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.baseline-progress-bar {
+    height: 6px;
+    background: var(--bg-input);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.baseline-progress-fill {
+    height: 100%;
+    background: var(--status-warning);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* ── Init Results ── */
+.baseline-results {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.baseline-table-result {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    padding: 4px 0;
+}
+
+.baseline-table-result.created i { color: var(--status-online); }
+.baseline-table-result.skipped i { color: var(--text-muted); }
+.baseline-table-result.error i { color: var(--status-error); }
+
+.baseline-table-name {
+    flex: 1;
+    font-family: monospace;
+    font-size: 11.5px;
+    color: var(--text-primary);
+}
+
+.baseline-table-count {
+    font-size: 11px;
+    color: var(--text-muted);
+    min-width: 80px;
+    text-align: right;
+}
+
+.baseline-table-status {
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    min-width: 60px;
+    text-align: right;
+}
+
+.baseline-table-result.created .baseline-table-status { color: var(--status-online); }
+.baseline-table-result.skipped .baseline-table-status { color: var(--text-muted); }
+.baseline-table-result.error .baseline-table-status { color: var(--status-error); }
+
+/* ── Changelog Panel ── */
+.changelog-panel {
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.changelog-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-input);
+    cursor: pointer;
+    user-select: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.changelog-header i.chevron {
+    margin-left: auto;
+    font-size: 10px;
+    transition: transform 0.2s;
+}
+
+.changelog-header.collapsed i.chevron {
+    transform: rotate(-90deg);
+}
+
+.changelog-body {
+    max-height: 500px;
+    overflow-y: auto;
+    transition: max-height 0.3s ease;
+}
+
+.changelog-body.collapsed {
+    max-height: 0;
+    overflow: hidden;
+}
+
+.changelog-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--status-warning);
+    border-radius: 9px;
+}
+
+.changelog-count-badge.clean {
+    background: var(--status-online);
+}
+
+/* ── Changelog Rows ── */
+.changelog-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.changelog-row:last-child {
+    border-bottom: none;
+}
+
+.changelog-field {
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.changelog-old {
+    color: var(--status-error);
+    text-decoration: line-through;
+    font-size: 11.5px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.changelog-arrow {
+    font-size: 9px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.changelog-new {
+    color: var(--status-online);
+    font-weight: 500;
+    font-size: 11.5px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.changelog-empty {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ── Loot Change Rows ── */
+.changelog-row.loot-change {
+    padding: 4px 12px;
+}
+
+.changelog-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+.changelog-badge.modified {
+    background: rgba(255, 152, 0, 0.15);
+    color: var(--status-warning);
+}
+
+.changelog-badge.added {
+    background: rgba(76, 175, 80, 0.15);
+    color: var(--status-online);
+}
+
+.changelog-badge.deleted {
+    background: rgba(244, 67, 54, 0.15);
+    color: var(--status-error);
+}
+
+.changelog-detail {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    flex: 1;
+}
+
+.changelog-source {
+    font-size: 10px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+/* ── Reset Button ── */
+.btn-reset-og {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--status-warning);
+    background: none;
+    border: 1px solid rgba(255, 152, 0, 0.3);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-reset-og:hover {
+    background: rgba(255, 152, 0, 0.08);
+    border-color: var(--status-warning);
+}
+
+/* ── Toast ── */
+.baseline-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    z-index: 10000;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.baseline-toast.success { border-left: 3px solid var(--status-online); }
+.baseline-toast.error { border-left: 3px solid var(--status-error); }

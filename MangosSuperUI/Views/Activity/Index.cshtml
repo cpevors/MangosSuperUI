@@ -1,0 +1,165 @@
+@{
+    ViewData["Title"] = "Activity Log";
+}
+
+<div class="app-shell">
+    <partial name="_Sidebar" />
+
+    <div class="main-content">
+        <div class="content-header">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h1>Activity Log</h1>
+                    <p>Admin panel audit trail — every action recorded</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="al-stat" id="alTodayCount" title="Actions in last 24h">—</span>
+                    <span class="al-stat al-stat-err" id="alFailCount" title="Failures in last 24h" style="display: none;">—</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <!-- Filter Bar -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <div class="al-search-wrap">
+                            <i class="fa-solid fa-magnifying-glass al-search-icon"></i>
+                            <input type="text"
+                                   class="form-input al-search"
+                                   id="alSearch"
+                                   placeholder="Search commands, targets, notes..."
+                                   autocomplete="off" />
+                        </div>
+                        <div class="al-chips" id="alChips">
+                            <button class="al-chip active" data-category="">All</button>
+                        </div>
+                        <div class="d-flex align-items-center gap-2" style="margin-left: auto;">
+                            <label class="al-toggle-label">
+                                <input type="checkbox" id="alFailuresOnly" />
+                                <span>Failures only</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Entries -->
+            <div id="alEntries"></div>
+
+            <!-- Pagination -->
+            <div class="d-flex align-items-center justify-content-between mt-3 mb-4" id="alPagination" style="display: none;">
+                <div class="al-page-info" id="alPageInfo"></div>
+                <div class="d-flex gap-2">
+                    <button class="btn-outline-subtle" id="alPrev"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+                    <button class="btn-outline-subtle" id="alNext">Next <i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Empty state -->
+            <div id="alEmpty" style="display: none;">
+                <div class="card">
+                    <div class="card-body" style="text-align: center; padding: 48px; color: var(--text-muted);">
+                        <i class="fa-solid fa-clipboard-list" style="font-size: 32px; margin-bottom: 12px;"></i>
+                        <div style="font-size: 14px; font-weight: 500;">No audit entries found</div>
+                        <div style="font-size: 12.5px; margin-top: 4px;">Actions will appear here as you use the admin panel.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Search */
+        .al-search-wrap { position: relative; min-width: 260px; }
+        .al-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; pointer-events: none; }
+        .al-search { padding-left: 34px !important; font-size: 13px; }
+
+        /* Filter chips */
+        .al-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+        .al-chip {
+            padding: 4px 12px; font-size: 11.5px; font-weight: 500; border-radius: 20px;
+            border: 1px solid var(--border-light); background: var(--bg-card); color: var(--text-secondary);
+            cursor: pointer; transition: all var(--transition-fast); white-space: nowrap;
+        }
+        .al-chip:hover { border-color: var(--accent); color: var(--accent); }
+        .al-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .al-chip .al-chip-count {
+            display: inline-block; font-size: 10px; font-weight: 600; background: rgba(255,255,255,0.2);
+            border-radius: 8px; padding: 0 5px; margin-left: 4px;
+        }
+        .al-chip:not(.active) .al-chip-count { background: var(--bg-body); }
+
+        /* Stats badges */
+        .al-stat {
+            font-size: 12px; font-weight: 600; background: var(--accent-subtle); color: var(--accent);
+            padding: 4px 10px; border-radius: 12px;
+        }
+        .al-stat-err { background: rgba(247,118,142,0.1); color: var(--status-error); }
+
+        /* Toggle */
+        .al-toggle-label {
+            display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary);
+            cursor: pointer; white-space: nowrap;
+        }
+        .al-toggle-label input { accent-color: var(--accent); }
+
+        /* Entry card */
+        .al-entry {
+            background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-md);
+            padding: 14px 16px; margin-bottom: 8px; transition: border-color var(--transition-fast);
+            cursor: pointer;
+        }
+        .al-entry:hover { border-color: var(--accent-light); }
+        .al-entry.al-expanded { border-color: var(--accent); }
+        .al-entry.al-fail { border-left: 3px solid var(--status-error); }
+
+        .al-entry-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .al-entry-time { font-size: 11.5px; color: var(--text-muted); font-family: 'Consolas','Courier New',monospace; min-width: 140px; }
+        .al-entry-cat {
+            font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+            padding: 2px 8px; border-radius: 4px; background: var(--accent-subtle); color: var(--accent);
+        }
+        .al-entry-cat-system { background: rgba(158,206,106,0.12); color: #6aab3e; }
+        .al-entry-cat-character { background: rgba(122,162,247,0.12); color: #7aa2f7; }
+        .al-entry-cat-account { background: rgba(224,175,104,0.12); color: #c9a054; }
+        .al-entry-cat-ban { background: rgba(247,118,142,0.12); color: #f7768e; }
+        .al-entry-cat-guild { background: rgba(187,154,247,0.12); color: #bb9af7; }
+        .al-entry-cat-bot { background: rgba(125,207,207,0.12); color: #5eaaa8; }
+        .al-entry-cat-config { background: rgba(158,206,106,0.12); color: #6aab3e; }
+        .al-entry-cat-query { background: rgba(169,177,193,0.08); color: var(--text-muted); }
+
+        .al-entry-action { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+        .al-entry-target { font-size: 12.5px; color: var(--text-secondary); }
+        .al-entry-target strong { color: var(--text-primary); font-weight: 600; }
+        .al-entry-status { margin-left: auto; font-size: 12px; }
+        .al-entry-status-ok { color: var(--status-online); }
+        .al-entry-status-fail { color: var(--status-error); font-weight: 600; }
+
+        /* Expanded detail */
+        .al-detail { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); }
+        .al-expanded .al-detail { display: block; }
+        .al-detail-row { display: flex; gap: 8px; margin-bottom: 6px; font-size: 12.5px; }
+        .al-detail-label { color: var(--text-muted); min-width: 110px; font-weight: 500; flex-shrink: 0; }
+        .al-detail-value { color: var(--text-secondary); word-break: break-all; }
+        .al-detail-value code {
+            font-family: 'Consolas','Courier New',monospace; font-size: 11.5px;
+            background: var(--bg-body); padding: 2px 6px; border-radius: 3px; color: var(--text-primary);
+        }
+        .al-detail-json {
+            font-family: 'Consolas','Courier New',monospace; font-size: 11px; line-height: 1.5;
+            background: #0f1319; color: #c8d0da; padding: 10px 12px; border-radius: var(--radius-sm);
+            max-height: 180px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+        }
+
+        /* Pagination */
+        .al-page-info { font-size: 12.5px; color: var(--text-muted); }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/js/activity.js" asp-append-version="true"></script>
+}

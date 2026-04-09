@@ -1,0 +1,343 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    string NavClass(string controller, string action = "Index")
+    {
+        return currentController.Equals(controller, StringComparison.OrdinalIgnoreCase)
+            ? "active"
+            : "";
+    }
+
+    // Which group contains the active page? (used by JS to auto-expand)
+    string activeGroup = currentController.ToLower() switch
+    {
+        "home" or "console" or "players" or "accounts" or "realm" => "operations",
+        "activity" or "serverlogs" or "livelogs" or "config" => "server",
+        "worldmap" or "items" or "spells" or "gameobjects" or "loottuner" or "instances" or "lootifier" => "content",
+        "database" => "data",
+        "downloads" => "downloads",
+        _ => ""
+    };
+}
+
+<aside class="sidebar">
+    <!-- Brand -->
+    <div class="sidebar-brand" style="flex-direction: column; align-items: center; text-align: center; padding: 20px 18px 16px;">
+        <img src="~/favicon.png" alt="MangosSuperUI" style="width: 100%; max-width: 200px; height: auto; margin-bottom: 10px; border-radius: var(--radius-md);" />
+        <div class="sidebar-brand-text" style="align-items: center;">
+            <span class="sidebar-brand-name">VMaNGOS</span>
+            <span class="sidebar-brand-sub">SuperUI</span>
+        </div>
+    </div>
+
+    <!-- Lander (shown when all groups collapsed) -->
+    <div class="sidebar-lander" id="sidebarLander">
+        <i class="fa-solid fa-hand-pointer"></i>
+        <span>Click a section below to navigate</span>
+    </div>
+
+    <!-- Navigation groups (rendered by JS from localStorage order, but we define them as data) -->
+    <div class="sidebar-groups" id="sidebarGroups" data-active-group="@activeGroup">
+
+        <!-- Operations -->
+        <div class="sidebar-section" data-group="operations">
+            <div class="sidebar-section-title" data-toggle-group="operations">
+                <span>Operations</span>
+                <i class="fa-solid fa-chevron-right sidebar-chevron"></i>
+            </div>
+            <ul class="sidebar-nav sidebar-nav-collapsible">
+                <li class="sidebar-nav-item" data-nav-key="home">
+                    <a asp-controller="Home" asp-action="Index" class="@NavClass("Home")">
+                        <i class="fa-solid fa-gauge"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="console">
+                    <a asp-controller="Console" asp-action="Index" class="@NavClass("Console")">
+                        <i class="fa-solid fa-terminal"></i>
+                        Console
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="players">
+                    <a asp-controller="Players" asp-action="Index" class="@NavClass("Players")">
+                        <i class="fa-solid fa-users"></i>
+                        Players
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="accounts">
+                    <a asp-controller="Accounts" asp-action="Index" class="@NavClass("Accounts")">
+                        <i class="fa-solid fa-id-badge"></i>
+                        Accounts
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="realm">
+                    <a asp-controller="Realm" asp-action="Index" class="@NavClass("Realm")">
+                        <i class="fa-solid fa-globe"></i>
+                        Realm
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Server -->
+        <div class="sidebar-section" data-group="server">
+            <div class="sidebar-section-title" data-toggle-group="server">
+                <span>Server</span>
+                <i class="fa-solid fa-chevron-right sidebar-chevron"></i>
+            </div>
+            <ul class="sidebar-nav sidebar-nav-collapsible">
+                <li class="sidebar-nav-item" data-nav-key="activity">
+                    <a asp-controller="Activity" asp-action="Index" class="@NavClass("Activity")">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        Activity Log
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="serverlogs">
+                    <a asp-controller="ServerLogs" asp-action="Index" class="@NavClass("ServerLogs")">
+                        <i class="fa-solid fa-file-lines"></i>
+                        Server Logs
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="livelogs">
+                    <a asp-controller="LiveLogs" asp-action="Index" class="@NavClass("LiveLogs")">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                        Live Logs
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="config">
+                    <a asp-controller="Config" asp-action="Index" class="@NavClass("Config")">
+                        <i class="fa-solid fa-sliders"></i>
+                        Config Editor
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Content -->
+        <div class="sidebar-section" data-group="content">
+            <div class="sidebar-section-title" data-toggle-group="content">
+                <span>Content</span>
+                <i class="fa-solid fa-chevron-right sidebar-chevron"></i>
+            </div>
+            <ul class="sidebar-nav sidebar-nav-collapsible">
+                <li class="sidebar-nav-item" data-nav-key="worldmap">
+                    <a asp-controller="WorldMap" asp-action="Index" class="@NavClass("WorldMap")">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        World Map
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="items">
+                    <a asp-controller="Items" asp-action="Index" class="@NavClass("Items")">
+                        <i class="fa-solid fa-box-open"></i>
+                        Items
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="spells">
+                    <a asp-controller="Spells" asp-action="Index" class="@NavClass("Spells")">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        Spells
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="gameobjects">
+                    <a asp-controller="GameObjects" asp-action="Index" class="@NavClass("GameObjects")">
+                        <i class="fa-solid fa-cubes"></i>
+                        Game Objects
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="loottuner">
+                    <a asp-controller="LootTuner" asp-action="Index" class="@NavClass("LootTuner")">
+                        <i class="fa-solid fa-dice-d20"></i>
+                        Loot Tuner
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="instances">
+                    <a asp-controller="Instances" asp-action="Index" class="@NavClass("Instances")">
+                        <i class="fa-solid fa-dungeon"></i>
+                        Instance Loot
+                    </a>
+                </li>
+                <li class="sidebar-nav-item" data-nav-key="lootifier">
+                    <a asp-controller="Lootifier" asp-action="Index" class="@NavClass("Lootifier")">
+                        <i class="fa-solid fa-dragon"></i>
+                        ARPG Lootifier
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Downloads & Uploads -->
+        <div class="sidebar-section" data-group="downloads">
+            <div class="sidebar-section-title" data-toggle-group="downloads">
+                <span>Downloads & Uploads</span>
+                <i class="fa-solid fa-chevron-right sidebar-chevron"></i>
+            </div>
+            <ul class="sidebar-nav sidebar-nav-collapsible">
+                <li class="sidebar-nav-item" data-nav-key="downloads-page">
+                    <a asp-controller="Downloads" asp-action="Index" class="@NavClass("Downloads")">
+                        <i class="fa-solid fa-arrow-down-to-line"></i>
+                        Downloads
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Data -->
+        <div class="sidebar-section" data-group="data">
+            <div class="sidebar-section-title" data-toggle-group="data">
+                <span>Data</span>
+                <i class="fa-solid fa-chevron-right sidebar-chevron"></i>
+            </div>
+            <ul class="sidebar-nav sidebar-nav-collapsible">
+                <li class="sidebar-nav-item" data-nav-key="database">
+                    <a asp-controller="Database" asp-action="Index" class="@NavClass("Database")">
+                        <i class="fa-solid fa-database"></i>
+                        Database Explorer
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+        <ul class="sidebar-nav">
+            <li class="sidebar-nav-item">
+                <a asp-controller="Settings" asp-action="Index" class="@NavClass("Settings")">
+                    <i class="fa-solid fa-gear"></i>
+                    Settings
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                <button class="sidebar-customize-btn" id="btnOpenCustomize" title="Customize sidebar order & theme">
+                    <i class="fa-solid fa-palette"></i>
+                    Customize
+                </button>
+            </li>
+        </ul>
+    </div>
+</aside>
+
+<!-- ========== Customize Modal ========== -->
+<div class="customize-overlay" id="customizeOverlay">
+    <div class="customize-modal">
+        <div class="customize-header">
+            <h3><i class="fa-solid fa-palette"></i> Customize</h3>
+            <button class="customize-close" id="btnCloseCustomize"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="customize-tabs">
+            <button class="customize-tab active" data-tab="order"><i class="fa-solid fa-arrows-up-down"></i> Order</button>
+            <button class="customize-tab" data-tab="theme"><i class="fa-solid fa-droplet"></i> Theme</button>
+        </div>
+
+        <!-- Tab: Reorder -->
+        <div class="customize-body customize-tab-content active" data-tab-content="order">
+            <p class="customize-hint">Drag groups or items within groups to reorder. Changes apply instantly.</p>
+            <div class="reorder-list" id="reorderGroupList">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Tab: Theme -->
+        <div class="customize-body customize-tab-content" data-tab-content="theme">
+            <p class="customize-hint">Pick colors to override the default theme. Changes preview live.</p>
+
+            <div class="theme-section">
+                <div class="theme-section-label">Sidebar</div>
+                <div class="theme-row">
+                    <label>Background</label>
+                    <input type="color" class="theme-color-input" data-var="--bg-sidebar" />
+                </div>
+                <div class="theme-row">
+                    <label>Text</label>
+                    <input type="color" class="theme-color-input" data-var="--text-sidebar" />
+                </div>
+                <div class="theme-row">
+                    <label>Active highlight</label>
+                    <input type="color" class="theme-color-input" data-var="--bg-sidebar-active" />
+                </div>
+                <div class="theme-row">
+                    <label>Active text</label>
+                    <input type="color" class="theme-color-input" data-var="--text-sidebar-active" />
+                </div>
+                <div class="theme-row">
+                    <label>Section titles</label>
+                    <input type="color" class="theme-color-input" data-var="--text-sidebar-heading" />
+                </div>
+                <div class="theme-row">
+                    <label>Hover</label>
+                    <input type="color" class="theme-color-input" data-var="--bg-sidebar-hover" />
+                </div>
+            </div>
+
+            <div class="theme-section">
+                <div class="theme-section-label">Main Content</div>
+                <div class="theme-row">
+                    <label>Page background</label>
+                    <input type="color" class="theme-color-input" data-var="--bg-body" />
+                </div>
+                <div class="theme-row">
+                    <label>Primary text</label>
+                    <input type="color" class="theme-color-input" data-var="--text-primary" />
+                </div>
+                <div class="theme-row">
+                    <label>Secondary text</label>
+                    <input type="color" class="theme-color-input" data-var="--text-secondary" />
+                </div>
+                <div class="theme-row">
+                    <label>Muted text</label>
+                    <input type="color" class="theme-color-input" data-var="--text-muted" />
+                </div>
+            </div>
+
+            <div class="theme-section">
+                <div class="theme-section-label">Cards & Panels</div>
+                <div class="theme-row">
+                    <label>Card background</label>
+                    <input type="color" class="theme-color-input" data-var="--bg-card" />
+                </div>
+                <div class="theme-row">
+                    <label>Card alt / stripe</label>
+                    <input type="color" class="theme-color-input" data-var="--bg-card-alt" />
+                </div>
+                <div class="theme-row">
+                    <label>Input background</label>
+                    <input type="color" class="theme-color-input" data-var="--bg-input" />
+                </div>
+                <div class="theme-row">
+                    <label>Border (light)</label>
+                    <input type="color" class="theme-color-input" data-var="--border-light" />
+                </div>
+                <div class="theme-row">
+                    <label>Border (medium)</label>
+                    <input type="color" class="theme-color-input" data-var="--border-medium" />
+                </div>
+            </div>
+
+            <div class="theme-section">
+                <div class="theme-section-label">Accent</div>
+                <div class="theme-row">
+                    <label>Primary accent</label>
+                    <input type="color" class="theme-color-input" data-var="--accent" />
+                </div>
+                <div class="theme-row">
+                    <label>Accent hover</label>
+                    <input type="color" class="theme-color-input" data-var="--accent-hover" />
+                </div>
+                <div class="theme-row">
+                    <label>Text on accent</label>
+                    <input type="color" class="theme-color-input" data-var="--text-on-accent" />
+                </div>
+            </div>
+
+            <div class="theme-actions">
+                <button class="btn-outline-subtle" id="btnResetTheme">
+                    <i class="fa-solid fa-rotate-left"></i> Reset to Defaults
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

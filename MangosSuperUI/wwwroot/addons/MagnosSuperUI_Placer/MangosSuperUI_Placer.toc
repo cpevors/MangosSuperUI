@@ -1,0 +1,9 @@
+﻿## Interface: 11200
+## Title: MangosSuperUI Placer
+## Notes: Browse and place custom game objects from MangosSuperUI.
+## Author: MangosSuperUI
+## Version: 1.0
+## SavedVariables: MSUI_PlacerSettings
+Catalog.lua
+Core.lua
+UI.lua

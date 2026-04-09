@@ -1,0 +1,247 @@
+@{
+    ViewData["Title"] = "Spells";
+}
+
+<div class="app-shell">
+    <partial name="_Sidebar" />
+
+    <div class="main-content">
+        <div class="content-header">
+            <div>
+                <h1><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent);"></i> Spells</h1>
+                <p>Browse and edit all <span id="totalSpellCount">—</span> spells in the world database</p>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <!-- Baseline Warning Banner -->
+            <div id="baselineWarning"></div>
+
+            <!-- Search & Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="cmd-label">Search by name or spell ID</label>
+                            <input type="text" class="form-input" id="spellSearch" placeholder="e.g. Fireball or 133" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="cmd-label">School</label>
+                            <select class="form-input" id="filterSchool">
+                                <option value="">All</option>
+                                <option value="0">Physical</option>
+                                <option value="1">Holy</option>
+                                <option value="2">Fire</option>
+                                <option value="3">Nature</option>
+                                <option value="4">Frost</option>
+                                <option value="5">Shadow</option>
+                                <option value="6">Arcane</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="cmd-label">Mechanic</label>
+                            <select class="form-input" id="filterMechanic">
+                                <option value="">All</option>
+                                <option value="0">None</option>
+                                <option value="1">Charmed</option>
+                                <option value="2">Disoriented</option>
+                                <option value="3">Disarmed</option>
+                                <option value="5">Fleeing</option>
+                                <option value="7">Rooted</option>
+                                <option value="9">Silence</option>
+                                <option value="12">Stunned</option>
+                                <option value="17">Polymorphed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn-accent w-100" id="btnSearchSpells">
+                                <i class="fa-solid fa-magnifying-glass"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results + Editor -->
+            <div class="row">
+                <!-- Spell List -->
+                <div class="col-lg-5">
+                    <div class="card">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span><i class="fa-solid fa-list" style="color: var(--accent);"></i> Results</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-muted" style="font-size: 12px;" id="spellResultInfo"></span>
+                                <button class="btn-sm btn-outline-subtle" id="btnViewMode" style="font-size:11px;padding:3px 8px;">
+                                    <i class="fa-solid fa-layer-group"></i> Grouped
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0" id="spellListContainer" style="max-height: calc(100vh - 260px); overflow-y: auto;">
+                            <div class="text-center p-4 text-muted">Search to browse spells</div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between" id="spellPaginationBar" style="display: none !important;">
+                            <button class="btn-outline-subtle btn-sm" id="btnSpellPrevPage"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+                            <span style="font-size: 12.5px; color: var(--text-secondary);" id="spellPageInfo"></span>
+                            <button class="btn-outline-subtle btn-sm" id="btnSpellNextPage">Next <i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Editor Panel -->
+                <div class="col-lg-7">
+                    <div class="card" style="position: sticky; top: 16px;">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span><i class="fa-solid fa-pen-to-square" style="color: var(--accent);"></i> Spell Editor</span>
+                        </div>
+                        <div class="card-body p-0" id="spellEditorContent" style="max-height: calc(100vh - 180px); overflow-y: auto;">
+                            <div class="text-center text-muted p-4">
+                                <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 28px; margin-bottom: 10px; display: block; color: var(--border);"></i>
+                                Click a spell from the list to load the editor
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Save Bar (fixed bottom) -->
+<div class="save-bar" id="saveBar">
+    <div class="save-bar-inner">
+        <span><i class="fa-solid fa-pen"></i> <strong id="saveCount">0</strong> unsaved change(s)</span>
+        <div class="d-flex gap-2">
+            <button class="btn-sm btn-outline-subtle" id="btnDiscard">
+                <i class="fa-solid fa-rotate-left"></i> Discard
+            </button>
+            <button class="btn-sm btn-accent" id="btnSave">
+                <i class="fa-solid fa-floppy-disk"></i> Save
+            </button>
+        </div>
+    </div>
+</div>
+<!-- Reset Confirmation Modal (used by BaselineSystem) -->
+<div class="modal fade" id="resetConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <div class="modal-header" style="border-color: var(--status-warning); background: rgba(255,170,0,0.08);">
+                <h5 class="modal-title" id="resetModalTitle" style="font-size: 15px; font-weight: 600; color: var(--status-warning);">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Confirm Reset
+                </h5>
+            </div>
+            <div class="modal-body" id="resetModalBody" style="font-size: 13.5px;"></div>
+            <div class="modal-footer" style="border-color: var(--border-light); gap: 8px;">
+                <button class="btn-sm" id="btnConfirmReset" style="background: var(--status-warning); border: none; color: #000; font-weight: 600; border-radius: var(--radius-sm); padding: 6px 16px; cursor: pointer;">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button class="btn-sm btn-outline-subtle" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* ── Spell List ── */
+        .spell-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: background var(--transition-fast); }
+        .spell-row:hover { background: var(--bg-input); }
+        .spell-row.active { background: var(--accent-subtle); border-left: 3px solid var(--accent); }
+        .spell-row:last-child { border-bottom: none; }
+        .spell-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border); flex-shrink: 0; image-rendering: pixelated; }
+        .spell-name { font-size: 13px; font-weight: 500; }
+        .spell-rank { font-size: 11px; color: var(--text-muted); }
+        .spell-meta { font-size: 11px; color: var(--text-muted); }
+        .spell-entry { font-size: 10px; color: var(--text-muted); font-family: monospace; }
+
+        .school-badge { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .school-0 { background: #555; color: #ddd; } .school-1 { background: #ffe066; color: #333; }
+        .school-2 { background: #ff6600; color: #fff; } .school-3 { background: #4caf50; color: #fff; }
+        .school-4 { background: #42a5f5; color: #fff; } .school-5 { background: #7e57c2; color: #fff; }
+        .school-6 { background: #e040fb; color: #fff; }
+
+        /* ── Grouped View ── */
+        .spell-group { border-bottom: 1px solid var(--border-light); }
+        .spell-group:last-child { border-bottom: none; }
+        .spell-group-header { display: flex; align-items: center; gap: 10px; padding: 8px 14px; cursor: pointer; transition: background var(--transition-fast); }
+        .spell-group-header:hover { background: var(--bg-input); }
+        .group-chevron { font-size: 9px; color: var(--text-muted); transition: transform 0.2s ease; width: 12px; text-align: center; flex-shrink: 0; }
+        .group-chevron.open { transform: rotate(90deg); }
+        .rank-count { font-size: 10px; color: var(--text-muted); background: var(--bg-input); padding: 1px 7px; border-radius: 8px; font-weight: 600; white-space: nowrap; }
+        .spell-group-body { background: var(--bg-body); border-top: 1px solid var(--border-light); }
+        .spell-group-actions { padding: 8px 14px 4px; display: flex; gap: 6px; }
+        .spell-rank-row { padding-left: 36px !important; font-size: 12px; }
+        .btn-batch-edit { font-size: 11px !important; }
+
+        /* ── Per-Rank Table ── */
+        .perrank-table { width: 100%; font-size: 11px; border-collapse: collapse; }
+        .perrank-table th { padding: 4px 6px; font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; border-bottom: 1px solid var(--border); background: var(--bg-input); position: sticky; top: 0; }
+        .perrank-table td { padding: 3px 6px; text-align: center; border-bottom: 1px solid var(--border-light); font-family: monospace; font-size: 11px; }
+        .perrank-label { text-align: left !important; font-family: inherit !important; color: var(--text-secondary); white-space: nowrap; }
+        .perrank-table tr:hover td { background: rgba(99,153,255,0.04); }
+
+        /* ── Editor Header ── */
+        .editor-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border-light); }
+        .detail-icon { width: 48px; height: 48px; border-radius: var(--radius-sm); border: 2px solid var(--border); image-rendering: pixelated; flex-shrink: 0; }
+
+        .restart-notice { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(255,170,0,0.08); border-bottom: 1px solid rgba(255,170,0,0.15); font-size: 11.5px; color: var(--status-warning); font-weight: 500; }
+
+        .dbc-info-row { display: flex; gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--border-light); font-size: 12px; color: var(--text-secondary); }
+        .dbc-info-row i { color: var(--text-muted); font-size: 10px; margin-right: 3px; }
+
+        .effect-summary-row { display: flex; flex-wrap: wrap; gap: 5px; padding: 8px 16px; border-bottom: 1px solid var(--border-light); }
+        .effect-summary-badge { font-size: 10.5px; padding: 2px 8px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; color: var(--text-secondary); font-weight: 500; }
+
+        /* ── OG Diff ── */
+        .og-diff-banner { margin: 0; border-bottom: 1px solid var(--border-light); }
+        .og-diff-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; cursor: pointer; font-size: 12px; color: var(--status-warning); font-weight: 500; background: rgba(255,170,0,0.05); }
+        .og-diff-header:hover { background: rgba(255,170,0,0.1); }
+        #ogDiffBody { padding: 0 16px 10px; }
+        .og-diff-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 11.5px; font-family: monospace; }
+        .og-diff-col { color: var(--text-muted); min-width: 120px; font-size: 11px; }
+        .og-diff-val { padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+        .og-val { background: rgba(255,80,80,0.1); color: var(--status-error); text-decoration: line-through; }
+        .cur-val { background: rgba(80,200,120,0.1); color: var(--status-online); }
+
+        /* ── Editor Sections ── */
+        .editor-section { border-bottom: 1px solid var(--border-light); }
+        .editor-section.dimmed { opacity: 0.45; }
+        .editor-section.dimmed:hover { opacity: 0.7; }
+        .editor-section-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); transition: background 0.15s ease; user-select: none; }
+        .editor-section-header:hover { background: var(--bg-input); }
+        .editor-section-header i:first-child { color: var(--accent); font-size: 11px; margin-right: 6px; }
+        .section-chevron { font-size: 9px; color: var(--text-muted); transition: transform 0.2s ease; }
+        .editor-section-header.open .section-chevron { transform: rotate(90deg); }
+
+        .editor-section-body { padding: 4px 16px 12px; }
+
+        .effect-type-tag { font-size: 10px; font-weight: 500; padding: 1px 6px; border-radius: 8px; background: var(--accent-subtle); color: var(--accent-light); margin-left: 6px; }
+        .effect-type-tag.inactive { background: var(--bg-input); color: var(--text-muted); }
+
+        /* ── Editor Fields ── */
+        .editor-field { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; min-height: 32px; }
+        .editor-field.dep-dimmed { opacity: 0.35; }
+        .editor-label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; min-width: 0; flex-shrink: 1; }
+        .field-note { color: var(--text-muted); font-size: 10px; cursor: help; margin-left: 3px; }
+        .editor-readonly { font-size: 12px; font-family: monospace; color: var(--text-muted); }
+
+        .editor-input { max-width: 200px !important; min-width: 100px; font-size: 12px !important; padding: 4px 8px !important; }
+        .editor-input[type="number"] { max-width: 140px !important; text-align: right; font-family: monospace; }
+        select.editor-input { max-width: 220px !important; }
+        .editor-input.field-changed { border-color: var(--accent) !important; background: rgba(99,153,255,0.08) !important; }
+
+        /* ── Save Bar ── */
+        .save-bar { position: fixed; bottom: -60px; left: 0; right: 0; z-index: 999; transition: bottom 0.25s ease; }
+        .save-bar.visible { bottom: 0; }
+        .save-bar-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: var(--bg-card); border-top: 2px solid var(--accent); box-shadow: 0 -4px 20px rgba(0,0,0,0.3); font-size: 13px; color: var(--text-primary); }
+
+        /* ── Toast ── */
+        .spell-toast { position: fixed; bottom: 70px; right: 24px; z-index: 9999; padding: 12px 20px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; animation: toastIn 0.3s ease-out; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .spell-toast.success { background: var(--status-online); color: white; }
+        .spell-toast.error { background: var(--status-error); color: white; }
+        @@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/js/spells.js" asp-append-version="true"></script>
+}
